@@ -1,3 +1,4 @@
+
 import os
 import sys
 import pygame
@@ -50,7 +51,6 @@ class App:
         self.tiles_group = pygame.sprite.Group()
         self.player_group = pygame.sprite.Group()
         self.fps = 50
-
     def terminate(self):
         pygame.quit()
         sys.exit()
@@ -136,6 +136,16 @@ class App:
                 elif event.type == pygame.KEYDOWN or \
                         event.type == pygame.MOUSEBUTTONDOWN:
                     return  # начинаем игру
+            pygame.display.flip()
+            self.clock.tick(self.fps)
+
+    def end_screen(self):
+        fon = pygame.transform.scale(self.load_image('end.jpg'), (self.width, self.height))
+        self.screen.blit(fon, (0, 0))
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.terminate()
             pygame.display.flip()
             self.clock.tick(self.fps)
 
