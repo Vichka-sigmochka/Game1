@@ -1,7 +1,6 @@
 import os
 import sys
 import pygame
-
 #C:\Users\Оля\PycharmProjects\git_project1\pythonProject1
 
 class Tile(pygame.sprite.Sprite):
