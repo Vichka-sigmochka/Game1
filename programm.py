@@ -1,3 +1,4 @@
+
 import os
 import sys
 import pygame
@@ -78,7 +79,6 @@ class App:
                     return  # начинаем игру
             pygame.display.flip()
             self.clock.tick(self.fps)
-
 
 if __name__ == '__main__':
     app = App()
