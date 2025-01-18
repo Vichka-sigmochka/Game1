@@ -140,7 +140,7 @@ class App:
             self.clock.tick(self.fps)
 
     def end_screen(self):
-        fon = pygame.transform.scale(self.load_image('end.jpg'), (self.width, self.height))
+        fon = pygame.transform.scale(self.load_image('fon1.jpg'), (self.width, self.height))
         self.screen.blit(fon, (0, 0))
         while True:
             for event in pygame.event.get():
