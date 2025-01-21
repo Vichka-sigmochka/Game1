@@ -38,7 +38,6 @@ class Hero(pygame.sprite.Sprite):
         if pygame.sprite.spritecollideany(self, self.app.tiles_group):
             self.rect.x -= pos[0]
             self.rect.y -= pos[1]
-
         self.tail.append([[self.rect.x - 5, self.rect.y - 8],
                                [random.randint(0, 25) / 10 - 1, random.choice([0, 0])],
                                random.randint(5, 8)])
