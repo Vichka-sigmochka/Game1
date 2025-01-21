@@ -2,6 +2,7 @@ import os
 import sys
 import pygame
 
+
 class Tile(pygame.sprite.Sprite):
     def __init__(self, app, tile_type, pos_x, pos_y):
         super().__init__(app.all_sprites)
@@ -10,7 +11,6 @@ class Tile(pygame.sprite.Sprite):
             'empty': app.load_image('empty.jpg')
         }
         player_image = app.load_image('player.png')
-
         tile_width = tile_height = 50
         self.image = tile_images[tile_type]
         self.rect = self.image.get_rect().move(
@@ -42,7 +42,7 @@ class App:
         self.width, self.height = 700, 400
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.width, self.height))
-        pygame.display.set_caption('GeometryDash')
+        pygame.display.set_caption('ГеометрияДэш')
         self.hero = None
         self.all_sprites = pygame.sprite.Group()
         self.tile_width = self.tile_height = 50
@@ -121,8 +121,8 @@ class App:
                 self.camera.apply(sprite)
 
     def start_screen(self):
-        intro_text = ["ЗАСТАВКА", "",
-                      "Правила игры"]
+        intro_text = ["Это ГеометрияДэш", "",
+                      "Вы находитесь на 1 уровне"]
         fon = pygame.transform.scale(self.load_image('screen.jpg'), (self.width, self.height))
         self.screen.blit(fon, (0, 0))
         font = pygame.font.Font(None, 30)
@@ -166,7 +166,7 @@ class Camera:
         obj.rect.y += self.dy
 
     def update(self, target):
-        self.dx = -(target.rect.x + target.rect.w // 2 - app.width // 2)
+        self.dx = -(target.rect.x + target.rect.w // 2 - app.width // 2 + 210)
        # self.dy = -(target.rect.y + target.rect.h // 2 - app.height // 2 - 100)
 
 
