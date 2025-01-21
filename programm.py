@@ -51,7 +51,6 @@ class App:
         self.tiles_group = pygame.sprite.Group()
         self.player_group = pygame.sprite.Group()
         self.fps = 50
-
     def terminate(self):
         pygame.quit()
         sys.exit()
@@ -99,10 +98,6 @@ class App:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
-                if event.type == pygame.KEYDOWN:  # переход на конечный фон спомощью нажатии клавиши.
-                    # Должен переходить только при заканчиваний жизни. Будут правки
-                    self.end_screen()
-                    run = False
             keys = pygame.key.get_pressed()
             if keys[pygame.K_DOWN]:
                 self.hero.update((0, 25))
