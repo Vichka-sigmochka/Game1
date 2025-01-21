@@ -1,8 +1,6 @@
-
 import os
 import sys
 import pygame
-#C:\Users\Оля\PycharmProjects\git_project1\pythonProject1
 
 class Tile(pygame.sprite.Sprite):
     def __init__(self, app, tile_type, pos_x, pos_y):
@@ -51,6 +49,8 @@ class App:
         self.tiles_group = pygame.sprite.Group()
         self.player_group = pygame.sprite.Group()
         self.fps = 50
+        self.camera = Camera()
+
     def terminate(self):
         pygame.quit()
         sys.exit()
@@ -98,21 +98,27 @@ class App:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_1:  # измениться при реализации столкновений
+                     self.end_screen()
+                     run = False
             keys = pygame.key.get_pressed()
             if keys[pygame.K_DOWN]:
-                self.hero.update((0, 25))
+                self.hero.update((0, 20))
             if keys[pygame.K_UP]:
-                self.hero.update((0, -25))
+                self.hero.update((0, -20))
             if keys[pygame.K_RIGHT]:
-                self.hero.update((25, 0))
+                self.hero.update((20, 0))
             if keys[pygame.K_LEFT]:
-                self.hero.update((-25, 0))
-
+                self.hero.update((-20, 0))
+            self.hero.update((3, 0))
             self.screen.fill(pygame.Color('blue'))
             self.all_sprites.draw(self.screen)
             self.player_group.draw(self.screen)
             pygame.display.flip()
             self.clock.tick(self.fps)
+            self.camera.update(self.hero)
+            for sprite in self.all_sprites:
+                self.camera.apply(sprite)
 
     def start_screen(self):
         intro_text = ["ЗАСТАВКА", "",
@@ -148,6 +154,20 @@ class App:
                     self.terminate()
             pygame.display.flip()
             self.clock.tick(self.fps)
+
+
+class Camera:
+    def __init__(self):
+        self.dx = 0
+        self.dy = 0
+
+    def apply(self, obj):
+        obj.rect.x += self.dx
+        obj.rect.y += self.dy
+
+    def update(self, target):
+        self.dx = -(target.rect.x + target.rect.w // 2 - app.width // 2)
+       # self.dy = -(target.rect.y + target.rect.h // 2 - app.height // 2 - 100)
 
 
 if __name__ == '__main__':
