@@ -1,6 +1,41 @@
+
 import os
 import sys
 import pygame
+#C:\Users\Оля\PycharmProjects\git_project1\pythonProject1
+
+class Tile(pygame.sprite.Sprite):
+    def __init__(self, app, tile_type, pos_x, pos_y):
+        super().__init__(app.all_sprites)
+        tile_images = {
+            'wall': app.load_image('block.jpg'),
+            'empty': app.load_image('empty.jpg')
+        }
+        player_image = app.load_image('player.png')
+
+        tile_width = tile_height = 50
+        self.image = tile_images[tile_type]
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x, tile_height * pos_y)
+
+
+class Hero(pygame.sprite.Sprite):
+    def __init__(self, app, pos):
+        super().__init__(app.all_sprites, app.player_group)
+        self.image = app.load_image("player.png")
+        self.rect = self.image.get_rect()
+        self.app = app
+        # вычисляем маску для эффективного сравнения
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect().move(
+            app.tile_width * pos[0] + 15, app.tile_height * pos[1] + 5)
+
+    def update(self, pos):
+        self.rect.x += pos[0]
+        self.rect.y += pos[1]
+        if pygame.sprite.spritecollideany(self, self.app.tiles_group):
+            self.rect.x -= pos[0]
+            self.rect.y -= pos[1]
 
 
 class App:
@@ -10,6 +45,11 @@ class App:
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption('GeometryDash')
+        self.hero = None
+        self.all_sprites = pygame.sprite.Group()
+        self.tile_width = self.tile_height = 50
+        self.tiles_group = pygame.sprite.Group()
+        self.player_group = pygame.sprite.Group()
         self.fps = 50
 
     def terminate(self):
@@ -31,27 +71,51 @@ class App:
             image = image.convert_alpha()
         return image
 
+    def generate_level(self, level):
+        new_player, x, y = None, None, None
+        for y in range(len(level)):
+            for x in range(len(level[y])):
+                if level[y][x] == '.':
+                    Tile(self, 'empty', x, y)
+                elif level[y][x] == '#':
+                    self.tiles_group.add(Tile(self, 'wall', x, y))
+                elif level[y][x] == '@':
+                    Tile(self, 'empty', x, y)
+                    new_player = Hero(self, (x, y))
+        # вернем игрока, а также размер поля в клетках
+        return new_player, x, y
+
+    def load_level(self, filename):
+        filename = "data/" + filename
+        with open(filename, 'r') as mapFile:
+            level_map = [line.strip() for line in mapFile]
+        max_width = max(map(len, level_map))
+        return list(map(lambda x: x.ljust(max_width, '.'), level_map))
+
     def run_game(self):
         run = True
+        self.hero, level_x, level_y = self.generate_level(self.load_level('map.txt'))
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
-                if event.type == pygame.KEYDOWN: # переход на конечный фон спомощью нажатии клавиши.
-                    #Должен переходить только при заканчиваний жизни. Будут правки
+                if event.type == pygame.KEYDOWN:  # переход на конечный фон спомощью нажатии клавиши.
+                    # Должен переходить только при заканчиваний жизни. Будут правки
                     self.end_screen()
                     run = False
-            self.screen.fill(pygame.Color('blue'))
-            pygame.display.flip()
-            self.clock.tick(self.fps)
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_DOWN]:
+                self.hero.update((0, 25))
+            if keys[pygame.K_UP]:
+                self.hero.update((0, -25))
+            if keys[pygame.K_RIGHT]:
+                self.hero.update((25, 0))
+            if keys[pygame.K_LEFT]:
+                self.hero.update((-25, 0))
 
-    def end_screen(self):
-        fon = pygame.transform.scale(self.load_image('end.jpg'), (self.width, self.height))
-        self.screen.blit(fon, (0, 0))
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.terminate()
+            self.screen.fill(pygame.Color('blue'))
+            self.all_sprites.draw(self.screen)
+            self.player_group.draw(self.screen)
             pygame.display.flip()
             self.clock.tick(self.fps)
 
@@ -74,8 +138,19 @@ class App:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
-                elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                elif event.type == pygame.KEYDOWN or \
+                        event.type == pygame.MOUSEBUTTONDOWN:
                     return  # начинаем игру
+            pygame.display.flip()
+            self.clock.tick(self.fps)
+
+    def end_screen(self):
+        fon = pygame.transform.scale(self.load_image('fon1.jpg'), (self.width, self.height))
+        self.screen.blit(fon, (0, 0))
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.terminate()
             pygame.display.flip()
             self.clock.tick(self.fps)
 
