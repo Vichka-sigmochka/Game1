@@ -1,6 +1,7 @@
 import os
 import sys
 import pygame
+from pygame.math import Vector2
 
 
 class Tile(pygame.sprite.Sprite):
@@ -27,6 +28,26 @@ class Hero(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.rect.x = pos[0]
         self.rect.y = pos[1]
+        self.vel = Vector2(0, 0) # скорость
+        self.jump_amount = 11  # jump strength
+        self.isjump = False  # is the player jumping?
+
+    def jump(self):
+        self.vel.y = -self.jump_amount  # players vertical velocity is negative so ^
+
+    def update(self):
+        if self.isjump:
+            if self.onGround:
+                self.jump()
+        #if not self.onGround:  # only accelerate with gravity if in the air
+         #   self.vel += GRAVITY  # Gravity falls
+            # max falling speed
+            if self.vel.y > 100:
+                self.vel.y = 100
+        self.collide(0, self.platforms)
+        self.rect.top += self.vel.y
+        self.onGround = False
+        self.collide(self.vel.y, self.platforms)
 
     def update(self, pos):
         self.rect.x += pos[0]
@@ -39,7 +60,7 @@ class Hero(pygame.sprite.Sprite):
 class App:
     def __init__(self):
         pygame.init()
-        self.width, self.height = 700, 400
+        self.width, self.height = 800, 600
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption('GeometryDash')
@@ -73,12 +94,12 @@ class App:
         new_player, x, y = None, None, None
         for y in range(len(level)):
             for x in range(len(level[y])):
-                if level[y][x] == '.':
-                    Tile(self, 'empty', x, y)
+                #if level[y][x] == '.':
+                 #   Tile(self, 'empty', x, y)
                 if level[y][x] == '#':
                     self.tiles_group.add(Tile(self, 'wall', x, y))
                 elif level[y][x] == '@':
-                    Tile(self, 'empty', x, y)
+                    #Tile(self, 'empty', x, y)
                     new_player = Hero(self, (x, y))
         # вернем игрока, а также размер поля в клетках
         return new_player, x, y
