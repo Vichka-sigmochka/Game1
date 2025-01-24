@@ -1,8 +1,8 @@
-
 import os
 import sys
 from pygame.draw import rect
 import random
+import math
 import pygame
 
 
@@ -32,26 +32,19 @@ class Hero(pygame.sprite.Sprite):
             app.tile_width * pos[0] + 15, app.tile_height * pos[1] + 5)
         self.tail = []
         self.alpha_surf = pygame.Surface((700, 400), pygame.SRCALPHA)
-        self.count = 0
+        self.y = 350
+        self.v0 = 70
+        self.a = 70
+        self.g = 10
+        self.x = 100
 
     def update(self, pos):
         self.rect.x += pos[0]
 
-    def update1(self, v):
-        if self.count != 100 and v == 1:
-            self.rect.y -= 3
-            self.count += 2
-            if self.count % 2 == 0:
-                self.rect.x += 1
-            return self.count
-        elif self.count != 0 and v == 2:
-            self.rect.y += 3
-            self.count -= 2
-            if self.count % 2 == 0:
-                self.rect.x += 1
-            return self.count
-        else:
-            return 0
+
+    def update1(self, t):
+        self.rect.y = self.y - self.v0 * math.sin(self.a) * t + self.g * t * t / 2
+        self.rect.x += (self.v0 * math.cos(self.a) * t) / 15
 
 
 class App:
@@ -113,7 +106,7 @@ class App:
     def run_game(self):
         run = True
         self.hero, level_x, level_y = self.generate_level(self.load_level('map.txt'))
-        v = 1
+        t = 1
         jump = False
         while run:
             for event in pygame.event.get():
@@ -124,22 +117,22 @@ class App:
                      run = False
             keys = pygame.key.get_pressed()
             if jump:
-                k = self.hero.update1(v)
-                if k == 100:
-                    v = 2
-                if k == 0:
-                    v = 1
+                self.hero.update1(t)
+                t += 1
+                if t > (2 * math.sin(70) * 70 / 10):
                     jump = False
+                    t = 1
             if keys[pygame.K_UP]:
-                self.hero.update1(v)
+                t = 1
+                self.hero.update1(t)
                 jump = True
-            elif jump == False:
-                self.hero.update((1, 0))
+            if not jump:
+                self.hero.update((5, 0))
             self.screen.fill(pygame.Color('blue'))
             self.all_sprites.draw(self.screen)
             self.player_group.draw(self.screen)
             pygame.display.flip()
-            self.clock.tick(self.fps)
+            self.clock.tick(10)
             self.camera.update(self.hero)
             for sprite in self.all_sprites:
                 self.camera.apply(sprite)
