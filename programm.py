@@ -32,25 +32,26 @@ class Hero(pygame.sprite.Sprite):
             app.tile_width * pos[0] + 15, app.tile_height * pos[1] + 5)
         self.tail = []
         self.alpha_surf = pygame.Surface((700, 400), pygame.SRCALPHA)
+        self.count = 0
 
     def update(self, pos):
         self.rect.x += pos[0]
-        self.rect.y += pos[1]
-        if pygame.sprite.spritecollideany(self, self.app.tiles_group):
-            self.rect.x -= pos[0]
-            self.rect.y -= pos[1]
 
-        self.tail.append([[self.rect.x - 5, self.rect.y - 8],
-                               [random.randint(0, 25) / 10 - 1, random.choice([0, 0])],
-                               random.randint(5, 8)])
-        for t in self.tail:
-            t[0][0] += t[1][0]
-            t[0][1] += t[1][1]
-            t[2] -= 0.5
-            t[1][0] -= 0.4
-            rect(self.alpha_surf, (255, 255, 255),([int(t[0][0]), int(t[0][1])], [int(t[2]) for i in range(2)]))
-            if t[2] <= 0:
-                self.tail.remove(t)
+    def update1(self, v):
+        if self.count != 100 and v == 1:
+            self.rect.y -= 3
+            self.count += 2
+            if self.count % 2 == 0:
+                self.rect.x += 1
+            return self.count
+        elif self.count != 0 and v == 2:
+            self.rect.y += 3
+            self.count -= 2
+            if self.count % 2 == 0:
+                self.rect.x += 1
+            return self.count
+        else:
+            return 0
 
 
 class App:
@@ -112,6 +113,8 @@ class App:
     def run_game(self):
         run = True
         self.hero, level_x, level_y = self.generate_level(self.load_level('map.txt'))
+        v = 1
+        jump = False
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -120,15 +123,18 @@ class App:
                      self.end_screen()
                      run = False
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_DOWN]:
-                self.hero.update((0, 20))
+            if jump:
+                k = self.hero.update1(v)
+                if k == 100:
+                    v = 2
+                if k == 0:
+                    v = 1
+                    jump = False
             if keys[pygame.K_UP]:
-                self.hero.update((0, -20))
-            if keys[pygame.K_RIGHT]:
-                self.hero.update((20, 0))
-            if keys[pygame.K_LEFT]:
-                self.hero.update((-20, 0))
-            self.hero.update((3, 0))
+                self.hero.update1(v)
+                jump = True
+            elif jump == False:
+                self.hero.update((1, 0))
             self.screen.fill(pygame.Color('blue'))
             self.all_sprites.draw(self.screen)
             self.player_group.draw(self.screen)
