@@ -1,7 +1,9 @@
+
 import os
 import sys
+from pygame.draw import rect
+import random
 import pygame
-from pygame.math import Vector2
 
 
 class Tile(pygame.sprite.Sprite):
@@ -12,7 +14,6 @@ class Tile(pygame.sprite.Sprite):
             'empty': app.load_image('empty.jpg')
         }
         player_image = app.load_image('player.png')
-
         tile_width = tile_height = 50
         self.image = tile_images[tile_type]
         self.rect = self.image.get_rect().move(
@@ -25,29 +26,12 @@ class Hero(pygame.sprite.Sprite):
         self.image = app.load_image("player.png")
         self.rect = self.image.get_rect()
         self.app = app
+        # вычисляем маску для эффективного сравнения
         self.mask = pygame.mask.from_surface(self.image)
-        self.rect.x = pos[0]
-        self.rect.y = pos[1]
-        self.vel = Vector2(0, 0) # скорость
-        self.jump_amount = 11  # jump strength
-        self.isjump = False  # is the player jumping?
-
-    def jump(self):
-        self.vel.y = -self.jump_amount  # players vertical velocity is negative so ^
-
-    def update(self):
-        if self.isjump:
-            if self.onGround:
-                self.jump()
-        #if not self.onGround:  # only accelerate with gravity if in the air
-         #   self.vel += GRAVITY  # Gravity falls
-            # max falling speed
-            if self.vel.y > 100:
-                self.vel.y = 100
-        self.collide(0, self.platforms)
-        self.rect.top += self.vel.y
-        self.onGround = False
-        self.collide(self.vel.y, self.platforms)
+        self.rect = self.image.get_rect().move(
+            app.tile_width * pos[0] + 15, app.tile_height * pos[1] + 5)
+        self.tail = []
+        self.alpha_surf = pygame.Surface((700, 400), pygame.SRCALPHA)
 
     def update(self, pos):
         self.rect.x += pos[0]
@@ -56,20 +40,34 @@ class Hero(pygame.sprite.Sprite):
             self.rect.x -= pos[0]
             self.rect.y -= pos[1]
 
+        self.tail.append([[self.rect.x - 5, self.rect.y - 8],
+                               [random.randint(0, 25) / 10 - 1, random.choice([0, 0])],
+                               random.randint(5, 8)])
+        for t in self.tail:
+            t[0][0] += t[1][0]
+            t[0][1] += t[1][1]
+            t[2] -= 0.5
+            t[1][0] -= 0.4
+            rect(self.alpha_surf, (255, 255, 255),([int(t[0][0]), int(t[0][1])], [int(t[2]) for i in range(2)]))
+            if t[2] <= 0:
+                self.tail.remove(t)
+
 
 class App:
     def __init__(self):
         pygame.init()
-        self.width, self.height = 800, 600
+        self.width, self.height = 700, 400
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.width, self.height))
-        pygame.display.set_caption('GeometryDash')
+        pygame.display.set_caption('ГеометрияДэш')
         self.hero = None
         self.all_sprites = pygame.sprite.Group()
         self.tile_width = self.tile_height = 50
         self.tiles_group = pygame.sprite.Group()
         self.player_group = pygame.sprite.Group()
         self.fps = 50
+        self.camera = Camera()
+        self.alpha_surf = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
 
     def terminate(self):
         pygame.quit()
@@ -94,12 +92,12 @@ class App:
         new_player, x, y = None, None, None
         for y in range(len(level)):
             for x in range(len(level[y])):
-                #if level[y][x] == '.':
-                 #   Tile(self, 'empty', x, y)
+                if level[y][x] == '.':
+                    Tile(self, 'empty', x, y)
                 if level[y][x] == '#':
                     self.tiles_group.add(Tile(self, 'wall', x, y))
                 elif level[y][x] == '@':
-                    #Tile(self, 'empty', x, y)
+                    Tile(self, 'empty', x, y)
                     new_player = Hero(self, (x, y))
         # вернем игрока, а также размер поля в клетках
         return new_player, x, y
@@ -111,9 +109,38 @@ class App:
         max_width = max(map(len, level_map))
         return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
+    def run_game(self):
+        run = True
+        self.hero, level_x, level_y = self.generate_level(self.load_level('map.txt'))
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.terminate()
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_1:  # измениться при реализации столкновений
+                     self.end_screen()
+                     run = False
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_DOWN]:
+                self.hero.update((0, 20))
+            if keys[pygame.K_UP]:
+                self.hero.update((0, -20))
+            if keys[pygame.K_RIGHT]:
+                self.hero.update((20, 0))
+            if keys[pygame.K_LEFT]:
+                self.hero.update((-20, 0))
+            self.hero.update((3, 0))
+            self.screen.fill(pygame.Color('blue'))
+            self.all_sprites.draw(self.screen)
+            self.player_group.draw(self.screen)
+            pygame.display.flip()
+            self.clock.tick(self.fps)
+            self.camera.update(self.hero)
+            for sprite in self.all_sprites:
+                self.camera.apply(sprite)
+
     def start_screen(self):
-        intro_text = ["ЗАСТАВКА", "",
-                      "Правила игры"]
+        intro_text = ["Это ГеометрияДэш", "",
+                      "Вы находитесь на 1 уровне"]
         fon = pygame.transform.scale(self.load_image('screen.jpg'), (self.width, self.height))
         self.screen.blit(fon, (0, 0))
         font = pygame.font.Font(None, 30)
@@ -146,28 +173,19 @@ class App:
             pygame.display.flip()
             self.clock.tick(self.fps)
 
-    def run_game(self):
-        run = True
-        self.hero, level_x, level_y = self.generate_level(self.load_level('map.txt'))
-        while run:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.terminate()
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_DOWN]:
-                self.hero.update((0, 25))
-            if keys[pygame.K_UP]:
-                self.hero.update((0, -25))
-            if keys[pygame.K_RIGHT]:
-                self.hero.update((25, 0))
-            if keys[pygame.K_LEFT]:
-                self.hero.update((-25, 0))
 
-            self.screen.fill(pygame.Color('blue'))
-            self.all_sprites.draw(self.screen)
-            self.player_group.draw(self.screen)
-            pygame.display.flip()
-            self.clock.tick(self.fps)
+class Camera:
+    def __init__(self):
+        self.dx = 0
+        self.dy = 0
+
+    def apply(self, obj):
+        obj.rect.x += self.dx
+        obj.rect.y += self.dy
+
+    def update(self, target):
+        self.dx = -(target.rect.x + target.rect.w // 2 - app.width // 2 + 210)
+       # self.dy = -(target.rect.y + target.rect.h // 2 - app.height // 2 - 100)
 
 
 if __name__ == '__main__':
