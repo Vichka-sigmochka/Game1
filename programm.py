@@ -1,4 +1,3 @@
-
 import os
 import sys
 from pygame.draw import rect
@@ -11,7 +10,8 @@ class Tile(pygame.sprite.Sprite):
         super().__init__(app.all_sprites)
         tile_images = {
             'wall': app.load_image('block.jpg'),
-            'empty': app.load_image('empty.jpg')
+            'empty': app.load_image('empty.jpg'),
+            'img': app.load_image('img.png')
         }
         player_image = app.load_image('player.png')
         tile_width = tile_height = 50
@@ -30,33 +30,26 @@ class Hero(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect().move(
             app.tile_width * pos[0] + 15, app.tile_height * pos[1] + 5)
-        self.tail = []
-        self.alpha_surf = pygame.Surface((700, 400), pygame.SRCALPHA)
 
     def update(self, pos):
         self.rect.x += pos[0]
         self.rect.y += pos[1]
-        if pygame.sprite.spritecollideany(self, self.app.tiles_group):
-            self.rect.x -= pos[0]
-            self.rect.y -= pos[1]
+        #if pygame.sprite.spritecollideany(self, self.app.tiles_group):
+         #   self.rect.x -= pos[0]
+          #  self.rect.y -= pos[1]
 
-        self.tail.append([[self.rect.x - 5, self.rect.y - 8],
-                               [random.randint(0, 25) / 10 - 1, random.choice([0, 0])],
-                               random.randint(5, 8)])
-        for t in self.tail:
-            t[0][0] += t[1][0]
-            t[0][1] += t[1][1]
-            t[2] -= 0.5
-            t[1][0] -= 0.4
-            rect(self.alpha_surf, (255, 255, 255),([int(t[0][0]), int(t[0][1])], [int(t[2]) for i in range(2)]))
-            if t[2] <= 0:
-                self.tail.remove(t)
+    def jump(self):
+        for i in range(40):
+            self.rect.y -= 2
+        for i in range(40):
+            self.rect.y += 2
+
 
 
 class App:
     def __init__(self):
         pygame.init()
-        self.width, self.height = 700, 400
+        self.width, self.height = 800, 600
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption('ГеометрияДэш')
@@ -67,7 +60,6 @@ class App:
         self.player_group = pygame.sprite.Group()
         self.fps = 50
         self.camera = Camera()
-        self.alpha_surf = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
 
     def terminate(self):
         pygame.quit()
@@ -96,6 +88,9 @@ class App:
                     Tile(self, 'empty', x, y)
                 if level[y][x] == '#':
                     self.tiles_group.add(Tile(self, 'wall', x, y))
+                if level[y][x] == '!':
+                    Tile(self, 'empty', x, y)
+                    self.tiles_group.add(Tile(self, 'img', x, y))
                 elif level[y][x] == '@':
                     Tile(self, 'empty', x, y)
                     new_player = Hero(self, (x, y))
@@ -120,15 +115,10 @@ class App:
                      self.end_screen()
                      run = False
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_DOWN]:
-                self.hero.update((0, 20))
             if keys[pygame.K_UP]:
-                self.hero.update((0, -20))
-            if keys[pygame.K_RIGHT]:
-                self.hero.update((20, 0))
-            if keys[pygame.K_LEFT]:
-                self.hero.update((-20, 0))
-            self.hero.update((3, 0))
+                self.hero.jump()
+            else:
+                self.hero.update((3, 0))
             self.screen.fill(pygame.Color('blue'))
             self.all_sprites.draw(self.screen)
             self.player_group.draw(self.screen)
@@ -141,8 +131,7 @@ class App:
     def start_screen(self):
         intro_text = ["Это ГеометрияДэш", "",
                       "Вы находитесь на 1 уровне"]
-        fon = pygame.transform.scale(self.load_image('screen.jpg'), (self.width, self.height))
-        self.screen.blit(fon, (0, 0))
+        self.screen.fill((0, 0, 255))
         font = pygame.font.Font(None, 30)
         text_coord = 50
         for line in intro_text:
@@ -157,11 +146,22 @@ class App:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
-                elif event.type == pygame.KEYDOWN or \
-                        event.type == pygame.MOUSEBUTTONDOWN:
-                    return  # начинаем игру
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[1] <= self.height / 2 + 20:
+                        return
+            mouse = pygame.mouse.get_pos()
+            if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[1] <= self.height / 2 + 20:
+                pygame.draw.rect(self.screen, (128, 255, 0), [self.width / 2 - 70, self.height / 2 - 20, 140, 40])
+            else:
+                pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 - 70, self.height / 2 - 20, 140, 40])
+            string_rendered = font.render("Start", 1, pygame.Color('white'))
+            self.screen.blit(string_rendered, (self.width / 2 - 22, self.height / 2 - 7))
             pygame.display.flip()
             self.clock.tick(self.fps)
+
+    def new_scren(self):
+        self.screen.fill((255, 0, 255))
+
 
     def end_screen(self):
         fon = pygame.transform.scale(self.load_image('fon1.jpg'), (self.width, self.height))
