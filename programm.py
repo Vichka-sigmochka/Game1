@@ -1,7 +1,5 @@
 import os
 import sys
-from pygame.draw import rect
-import random
 import math
 import pygame
 
@@ -26,7 +24,6 @@ class Hero(pygame.sprite.Sprite):
         self.image = app.load_image("player.png")
         self.rect = self.image.get_rect()
         self.app = app
-        # вычисляем маску для эффективного сравнения
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect().move(
             app.tile_width * pos[0] + 15, app.tile_height * pos[1] + 5)
@@ -93,7 +90,6 @@ class App:
                 elif level[y][x] == '@':
                     Tile(self, 'empty', x, y)
                     new_player = Hero(self, (x, y))
-        # вернем игрока, а также размер поля в клетках
         return new_player, x, y
 
     def load_level(self, filename):
@@ -127,7 +123,7 @@ class App:
                 self.hero.update1(t)
                 jump = True
             if not jump:
-                self.hero.update((5, 0))
+                self.hero.update((6, 0))
             self.screen.fill(pygame.Color('blue'))
             self.all_sprites.draw(self.screen)
             self.player_group.draw(self.screen)
