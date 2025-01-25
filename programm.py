@@ -2,6 +2,8 @@ import os
 import sys
 import math
 import pygame
+import random
+from pygame.math import Vector2
 
 
 class Tile(pygame.sprite.Sprite):
@@ -34,12 +36,35 @@ class Hero(pygame.sprite.Sprite):
         self.a = 70
         self.g = 10
         self.x = 100
+        self.particles = []
 
-    def update(self, pos):
+   # def draw_particle_trail(self, screen, x, y, color=(255, 255, 255)):
+    #    pygame.draw.rect(screen, color,
+     #                    ([x - 5, y - 8], [random.randint(0, 25) / 10 - 1, random.choice([0, 0])],
+      #       random.randint(5, 8)))
+
+    def draw_particle_trail(self, screen, x, y, color=(255, 255, 255)):
+        self.particles.append(
+            [[x - 5, y - 8], [random.randint(0, 25) / 10 - 1, random.choice([0, 0])],
+             random.randint(5, 8)])
+
+        for particle in self.particles:
+            particle[0][0] += particle[1][0]
+            particle[0][1] += particle[1][1]
+            particle[2] -= 0.5
+            particle[1][0] -= 0.4
+            pygame.draw.rect(screen, color,
+                 ([int(particle[0][0]), int(particle[0][1])], [int(particle[2]) for i in range(2)]))
+            if particle[2] <= 0:
+                self.particles.remove(particle)
+
+    def update(self, pos, screen):
         self.rect.x += pos[0]
+        self.draw_particle_trail(screen, self.rect.x - 1, self.rect.y + 2,
+                                   'WHITE')
 
 
-    def update1(self, t):
+    def jump(self, t):
         self.rect.y = self.y - self.v0 * math.sin(self.a) * t + self.g * t * t / 2
         self.rect.x += (self.v0 * math.cos(self.a) * t) / 15
 
@@ -113,17 +138,17 @@ class App:
                      run = False
             keys = pygame.key.get_pressed()
             if jump:
-                self.hero.update1(t)
+                self.hero.jump(t)
                 t += 1
                 if t > (2 * math.sin(70) * 70 / 10):
                     jump = False
                     t = 1
             if keys[pygame.K_UP]:
                 t = 1
-                self.hero.update1(t)
+                self.hero.jump(t)
                 jump = True
             if not jump:
-                self.hero.update((6, 0))
+                self.hero.update((6, 0), self.screen)
             self.screen.fill(pygame.Color('blue'))
             self.all_sprites.draw(self.screen)
             self.player_group.draw(self.screen)
