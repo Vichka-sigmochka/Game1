@@ -129,7 +129,7 @@ class App:
                 self.camera.apply(sprite)
 
     def start_screen(self):
-        intro_text = ["ГеометрияДэш", "",
+        intro_text = [" ГеометрияДэш", "",
                       "Выбери уровень"]
         self.screen.fill((0, 0, 0))
         self.click1 = True
@@ -137,11 +137,11 @@ class App:
         font = pygame.font.Font(None, 30)
         text_coord = 50
         for line in intro_text:
-            string_rendered = font.render(line, 1, pygame.Color('white'))
+            string_rendered = font.render(line, 0, pygame.Color('white'))
             intro_rect = string_rendered.get_rect()
             text_coord += 10
             intro_rect.top = text_coord
-            intro_rect.x = self.width / 2 - 80
+            intro_rect.x = self.width / 2 - 85
             text_coord += intro_rect.height
             self.screen.blit(string_rendered, intro_rect)
         while True:
@@ -151,10 +151,10 @@ class App:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[1] <= self.height / 2 + 20:
                         return
-                    if self.width / 2 - 100 <= mouse[0] <= self.width / 2 - 40 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
+                    if self.width / 2 - 70 <= mouse[0] <= self.width / 2 - 10 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
                         self.click1 = True
                         self.click2 = False
-                    if self.width / 2 - 20 <= mouse[0] <= self.width / 2 + 40 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
+                    if self.width / 2 + 10 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
                         self.click1 = False
                         self.click2 = True
             mouse = pygame.mouse.get_pos()
@@ -162,26 +162,34 @@ class App:
                 pygame.draw.rect(self.screen, (128, 255, 0), [self.width / 2 - 70, self.height / 2 - 20, 140, 40])
             else:
                 pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 - 70, self.height / 2 - 20, 140, 40])
-            if self.width / 2 - 100 <= mouse[0] <= self.width / 2 - 40 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
+            if self.width / 2 - 70 <= mouse[0] <= self.width / 2 - 10 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
                 if self.click1:
-                    pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 - 100, self.height / 2 - 100, 60, 60])
+                    pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 - 70, self.height / 2 - 100, 60, 60])
                 else:
-                    pygame.draw.rect(self.screen, (128, 255, 0), [self.width / 2 - 100, self.height / 2 - 100, 60, 60])
+                    pygame.draw.rect(self.screen, (128, 255, 0), [self.width / 2 - 70, self.height / 2 - 100, 60, 60])
             else:
-                pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 - 100, self.height / 2 - 100, 60, 60])
-            if self.width / 2 - 20 <= mouse[0] <= self.width / 2 + 40 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
+                if self.click1:
+                    pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 - 70, self.height / 2 - 100, 60, 60])
+                else:
+                    pygame.draw.rect(self.screen, (0, 0, 0), [self.width / 2 - 70, self.height / 2 - 100, 60, 60])
+                    pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 - 70, self.height / 2 - 100, 60, 60], 5)
+            if self.width / 2 + 10 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
                 if self.click2:
-                    pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 - 20, self.height / 2 - 100, 60, 60])
+                    pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 + 10, self.height / 2 - 100, 60, 60])
                 else:
-                    pygame.draw.rect(self.screen, (128, 255, 0), [self.width / 2 - 20, self.height / 2 - 100, 60, 60])
+                    pygame.draw.rect(self.screen, (128, 255, 0), [self.width / 2 + 10, self.height / 2 - 100, 60, 60])
             else:
-                pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 - 20, self.height / 2 - 100, 60, 60])
+                if self.click2:
+                    pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 + 10, self.height / 2 - 100, 60, 60])
+                else:
+                    pygame.draw.rect(self.screen, (0, 0, 0), [self.width / 2 + 10, self.height / 2 - 100, 60, 60])
+                    pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 + 10, self.height / 2 - 100, 60, 60], 5)
             string_rendered = font.render("Start", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 - 22, self.height / 2 - 7))
             string_rendered = font.render("1", 1, pygame.Color('white'))
-            self.screen.blit(string_rendered, (self.width / 2 - 90, self.height / 2 - 90))
+            self.screen.blit(string_rendered, (self.width / 2 - 60, self.height / 2 - 90))
             string_rendered = font.render("2", 1, pygame.Color('white'))
-            self.screen.blit(string_rendered, (self.width / 2 - 10, self.height / 2 - 90))
+            self.screen.blit(string_rendered, (self.width / 2 + 20, self.height / 2 - 90))
             pygame.display.flip()
             self.clock.tick(self.fps)
 
