@@ -158,6 +158,13 @@ class App:
                     if self.width / 2 + 10 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
                         self.click1 = False
                         self.click2 = True
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_RIGHT]:
+                self.click1 = False
+                self.click2 = True
+            if keys[pygame.K_LEFT]:
+                self.click1 = True
+                self.click2 = False
             mouse = pygame.mouse.get_pos()
             if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[1] <= self.height / 2 + 20:
                 pygame.draw.rect(self.screen, (128, 255, 0), [self.width / 2 - 70, self.height / 2 - 20, 140, 40])
