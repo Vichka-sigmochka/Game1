@@ -1,16 +1,15 @@
-
 import os
 import sys
 import math
 import pygame
 from pygame.draw import rect
-import random
+
 
 player_start_x = 100
-player_start_y = 300
+player_start_y = 400
 player_x = player_start_x
 player_y = player_start_y
-initial_speed = 400
+initial_speed = 450
 jump_angle = 80
 gravity = 1000
 jump_start_time = 0
@@ -34,7 +33,7 @@ class Tile(pygame.sprite.Sprite):
 
 class Hero(pygame.sprite.Sprite):
     def __init__(self, app, pos):
-        global player_start_x, player_start_y
+        global player_start_x, player_start_y, player_x, player_y
         super().__init__(app.all_sprites, app.player_group)
         self.image = app.load_image("player.jpg")
         self.rect = self.image.get_rect()
@@ -45,6 +44,8 @@ class Hero(pygame.sprite.Sprite):
             app.tile_width * pos[0] + 15, app.tile_height * pos[1] + 5)
         player_start_x = self.rect.x
         player_start_y = self.rect.y
+        player_x = player_start_x
+        player_y = player_start_y
 
     def angled_jump(self, start_x, start_y, initial_speed, jump_angle, gravity, current_time):
         jump_angle_rad = math.radians(jump_angle)
@@ -62,28 +63,12 @@ class Hero(pygame.sprite.Sprite):
 
     def update(self, pos):
         self.rect.x += pos[0]
-        self.rect.y += pos[1]
-        if pygame.sprite.spritecollideany(self, self.app.tiles_group):
-            self.rect.x -= pos[0]
-            self.rect.y -= pos[1]
-
-        self.tail.append([[self.rect.x - 5, self.rect.y - 8],
-                               [random.randint(0, 25) / 10 - 1, random.choice([0, 0])],
-                               random.randint(5, 8)])
-        for t in self.tail:
-            t[0][0] += t[1][0]
-            t[0][1] += t[1][1]
-            t[2] -= 0.5
-            t[1][0] -= 0.4
-            rect(self.alpha_surf, (255, 255, 255),([int(t[0][0]), int(t[0][1])], [int(t[2]) for i in range(2)]))
-            if t[2] <= 0:
-                self.tail.remove(t)
 
 
 class App:
     def __init__(self):
         pygame.init()
-        self.width, self.height = 800, 600
+        self.width, self.height = 700, 400
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption('ГеометрияДэш')
@@ -142,22 +127,23 @@ class App:
     def run_game(self, map):
         global player_start_x, player_start_y, player_x, player_y, initial_speed, jump_angle, gravity, jump_start_time, is_jumping
         run = True
-        self.hero, level_x, level_y = self.generate_level(self.load_level(map))
+        self.hero, level_x, level_y = self.generate_level(self.load_level('map.txt'))
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_1:  # измениться при реализации столкновений
-                     self.end_screen()
-                     run = False
+                    self.end_screen()
+                    run = False
             keys = pygame.key.get_pressed()
             if keys[pygame.K_UP] and not is_jumping:
                 is_jumping = True
                 jump_start_time = pygame.time.get_ticks() / 1000
             if is_jumping:
                 current_time = (pygame.time.get_ticks() / 1000) - jump_start_time
-                player_x, player_y = self.hero.angled_jump(player_start_x, player_start_y, initial_speed, jump_angle, gravity,
-                                                 current_time)
+                player_x, player_y = self.hero.angled_jump(player_start_x, player_start_y, initial_speed, jump_angle,
+                                                           gravity,
+                                                           current_time)
                 if player_y > player_start_y:  # Если игрок вернулся на землю
                     is_jumping = False
                     player_x = player_start_x
@@ -169,7 +155,7 @@ class App:
             self.all_sprites.draw(self.screen)
             self.player_group.draw(self.screen)
             pygame.display.flip()
-            self.clock.tick(self.fps)
+            self.clock.tick(10)
             self.camera.update(self.hero)
             for sprite in self.all_sprites:
                 self.camera.apply(sprite)
@@ -280,4 +266,4 @@ class Camera:
 if __name__ == '__main__':
     app = App()
     app.start_screen()
-    #app.run_game()
+    app.run_game()
