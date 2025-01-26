@@ -138,7 +138,7 @@ class App:
                     player_y = player_start_y
                 self.hero.update_jump((player_x, player_y))
             else:
-                self.hero.update((5, 0))
+                self.hero.update((7, 0))
             self.screen.fill(pygame.Color('blue'))
             self.all_sprites.draw(self.screen)
             self.player_group.draw(self.screen)
