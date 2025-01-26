@@ -4,7 +4,6 @@ import math
 import pygame
 from pygame.draw import rect
 
-
 player_start_x = 100
 player_start_y = 400
 player_x = player_start_x
