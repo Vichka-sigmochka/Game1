@@ -104,9 +104,9 @@ class App:
         max_width = max(map(len, level_map))
         return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
-    def run_game(self):
+    def run_game(self, map):
         run = True
-        self.hero, level_x, level_y = self.generate_level(self.load_level('map.txt'))
+        self.hero, level_x, level_y = self.generate_level(self.load_level(map))
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -135,6 +135,7 @@ class App:
         self.screen.blit(fon, (0, 0))
         self.click1 = True
         self.click2 = False
+        self.start = False
         font = pygame.font.Font(None, 30)
         text_coord = 50
         for line in intro_text:
@@ -151,7 +152,7 @@ class App:
                     self.terminate()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[1] <= self.height / 2 + 20:
-                        return
+                        app.run_game('map.txt')
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 - 10 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
                         self.click1 = True
                         self.click2 = False
@@ -165,8 +166,12 @@ class App:
             if keys[pygame.K_LEFT]:
                 self.click1 = True
                 self.click2 = False
+            if keys[pygame.K_DOWN]:
+                self.start = True
+            if keys[pygame.K_SPACE] and self.start:
+                app.run_game('map.txt')
             mouse = pygame.mouse.get_pos()
-            if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[1] <= self.height / 2 + 20:
+            if self.start or self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[1] <= self.height / 2 + 20:
                 pygame.draw.rect(self.screen, (128, 255, 0), [self.width / 2 - 70, self.height / 2 - 20, 140, 40])
             else:
                 pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 - 70, self.height / 2 - 20, 140, 40])
@@ -201,12 +206,8 @@ class App:
             pygame.display.flip()
             self.clock.tick(self.fps)
 
-    def new_scren(self):
-        self.screen.fill((255, 0, 255))
-
-
     def end_screen(self):
-        fon = pygame.transform.scale(self.load_image('fon1.jpg'), (self.width, self.height))
+        fon = pygame.transform.scale(self.load_image('gameover.jpg'), (self.width, self.height))
         self.screen.blit(fon, (0, 0))
         while True:
             for event in pygame.event.get():
@@ -233,4 +234,4 @@ class Camera:
 if __name__ == '__main__':
     app = App()
     app.start_screen()
-    app.run_game()
+    #app.run_game()
