@@ -1,8 +1,20 @@
+
 import os
 import sys
+import math
+import pygame
 from pygame.draw import rect
 import random
-import pygame
+
+player_start_x = 100
+player_start_y = 300
+player_x = player_start_x
+player_y = player_start_y
+initial_speed = 400
+jump_angle = 80
+gravity = 1000
+jump_start_time = 0
+is_jumping = False
 
 
 class Tile(pygame.sprite.Sprite):
@@ -13,7 +25,7 @@ class Tile(pygame.sprite.Sprite):
             'empty': app.load_image('empty.jpg'),
             'img': app.load_image('img.png')
         }
-        player_image = app.load_image('player.png')
+        player_image = app.load_image('player.jpg')
         tile_width = tile_height = 50
         self.image = tile_images[tile_type]
         self.rect = self.image.get_rect().move(
@@ -22,28 +34,50 @@ class Tile(pygame.sprite.Sprite):
 
 class Hero(pygame.sprite.Sprite):
     def __init__(self, app, pos):
+        global player_start_x, player_start_y
         super().__init__(app.all_sprites, app.player_group)
-        self.image = app.load_image("player.png")
+        self.image = app.load_image("player.jpg")
         self.rect = self.image.get_rect()
         self.app = app
         # вычисляем маску для эффективного сравнения
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect().move(
             app.tile_width * pos[0] + 15, app.tile_height * pos[1] + 5)
+        player_start_x = self.rect.x
+        player_start_y = self.rect.y
+
+    def angled_jump(self, start_x, start_y, initial_speed, jump_angle, gravity, current_time):
+        jump_angle_rad = math.radians(jump_angle)
+        initial_velocity_x = initial_speed * math.cos(jump_angle_rad)
+        initial_velocity_y = -initial_speed * math.sin(jump_angle_rad)
+        velocity_y = initial_velocity_y + gravity * current_time
+        velocity_x = initial_velocity_x
+        x = start_x + velocity_x * current_time
+        y = start_y + velocity_y * current_time - 0.5 * gravity * current_time ** 2
+        return x, y
+
+    def update_jump(self, pos):
+        self.rect.x = pos[0]
+        self.rect.y = pos[1]
 
     def update(self, pos):
         self.rect.x += pos[0]
         self.rect.y += pos[1]
-        #if pygame.sprite.spritecollideany(self, self.app.tiles_group):
-         #   self.rect.x -= pos[0]
-          #  self.rect.y -= pos[1]
+        if pygame.sprite.spritecollideany(self, self.app.tiles_group):
+            self.rect.x -= pos[0]
+            self.rect.y -= pos[1]
 
-    def jump(self):
-        for i in range(40):
-            self.rect.y -= 2
-        for i in range(40):
-            self.rect.y += 2
-
+        self.tail.append([[self.rect.x - 5, self.rect.y - 8],
+                               [random.randint(0, 25) / 10 - 1, random.choice([0, 0])],
+                               random.randint(5, 8)])
+        for t in self.tail:
+            t[0][0] += t[1][0]
+            t[0][1] += t[1][1]
+            t[2] -= 0.5
+            t[1][0] -= 0.4
+            rect(self.alpha_surf, (255, 255, 255),([int(t[0][0]), int(t[0][1])], [int(t[2]) for i in range(2)]))
+            if t[2] <= 0:
+                self.tail.remove(t)
 
 
 class App:
@@ -60,6 +94,7 @@ class App:
         self.player_group = pygame.sprite.Group()
         self.fps = 50
         self.camera = Camera()
+        self.alpha_surf = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
 
     def terminate(self):
         pygame.quit()
@@ -84,8 +119,8 @@ class App:
         new_player, x, y = None, None, None
         for y in range(len(level)):
             for x in range(len(level[y])):
-                if level[y][x] == '.':
-                    Tile(self, 'empty', x, y)
+                #if level[y][x] == '.':
+                 #   Tile(self, 'empty', x, y)
                 if level[y][x] == '#':
                     self.tiles_group.add(Tile(self, 'wall', x, y))
                 if level[y][x] == '!':
@@ -105,6 +140,7 @@ class App:
         return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
     def run_game(self, map):
+        global player_start_x, player_start_y, player_x, player_y, initial_speed, jump_angle, gravity, jump_start_time, is_jumping
         run = True
         self.hero, level_x, level_y = self.generate_level(self.load_level(map))
         while run:
@@ -115,10 +151,20 @@ class App:
                      self.end_screen()
                      run = False
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_UP]:
-                self.hero.jump()
+            if keys[pygame.K_UP] and not is_jumping:
+                is_jumping = True
+                jump_start_time = pygame.time.get_ticks() / 1000
+            if is_jumping:
+                current_time = (pygame.time.get_ticks() / 1000) - jump_start_time
+                player_x, player_y = self.hero.angled_jump(player_start_x, player_start_y, initial_speed, jump_angle, gravity,
+                                                 current_time)
+                if player_y > player_start_y:  # Если игрок вернулся на землю
+                    is_jumping = False
+                    player_x = player_start_x
+                    player_y = player_start_y
+                self.hero.update_jump((player_x, player_y))
             else:
-                self.hero.update((3, 0))
+                self.hero.update((7, 0))
             self.screen.fill(pygame.Color('blue'))
             self.all_sprites.draw(self.screen)
             self.player_group.draw(self.screen)
