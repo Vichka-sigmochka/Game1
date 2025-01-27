@@ -3,6 +3,7 @@ import sys
 import math
 import pygame
 from pygame.draw import rect
+import sqlite3
 
 player_start_x = 100
 player_start_y = 400
@@ -188,6 +189,14 @@ class App:
                     self.terminate()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[1] <= self.height / 2 + 20:
+                        self.con = sqlite3.connect("result.bd")
+                        cur = self.con.cursor()
+                        sqlite_insert_with_param = """INSERT INTO file_kod (name, score)
+                                                                              VALUES (?, ?);"""
+                        data_tuple = (self.text, 0)
+                        cur.execute(sqlite_insert_with_param, data_tuple)
+                        self.con.commit()
+                        self.con.close()
                         app.run_game('map.txt')
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 - 10 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
                         self.click1 = True
