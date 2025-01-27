@@ -21,6 +21,8 @@ class Hero(pygame.sprite.Sprite):
         self.platforms = platforms  # все объекты(блоки, треугольники, монеты)
         self.is_jump = False # прыгал или нет
         self.on_ground = False # находится на земле или нет
+        self.died = False  # умер или нет
+        self.win = False # выиграл или нет
 
     def collide(self, yvel, platforms): # столкновения
         global coins
@@ -37,6 +39,16 @@ class Hero(pygame.sprite.Sprite):
                     else:
                         self.vel.x = 0
                         self.rect.right = p.rect.left
+                if isinstance(p, Triangle):
+                    self.died = True
+                if isinstance(p, Coin):
+                    coins += 1
+                    p.rect.x = 0
+                    p.rect.y = 0
+                if isinstance(p, End):
+                    self.win = True
+
+
 
     def update(self):
         if self.is_jump:
@@ -53,20 +65,30 @@ class Hero(pygame.sprite.Sprite):
 
 
 class Draw(pygame.sprite.Sprite):
-    def __init__(self, image, pos, *groups):
+    def __init__(self, img, pos, *groups):
         super().__init__(*groups)
-        self.image = image
+        self.image = img
         self.rect = self.image.get_rect(topleft=pos)
 
 
 class Block(Draw):
-    def __init__(self, image, pos, *groups):
-        super().__init__(image, pos, *groups)
+    def __init__(self, img, pos, *groups):
+        super().__init__(img, pos, *groups)
 
 
 class Triangle(Draw):
-    def __init__(self, image, pos, *groups):
-        super().__init__(image, pos, *groups)
+    def __init__(self, img, pos, *groups):
+        super().__init__(img, pos, *groups)
+
+
+class Coin(Draw):
+    def __init__(self, img, pos, *groups):
+        super().__init__(img, pos, *groups)
+
+
+class End(Draw):
+    def __init__(self, img, pos, *groups):
+        super().__init__(img, pos, *groups)
 
 
 def Spin(surf, image, pos, item, angle):
