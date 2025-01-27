@@ -1,88 +1,112 @@
 import os
 import sys
-import math
 import pygame
 from pygame.draw import rect
+from pygame.math import Vector2
 
-player_start_x = 100
-player_start_y = 400
-player_x = player_start_x
-player_y = player_start_y
-initial_speed = 450
-jump_angle = 82
-gravity = 1000
+
 jump_start_time = 0
-is_jumping = False
-
-
-class Tile(pygame.sprite.Sprite):
-    def __init__(self, app, tile_type, pos_x, pos_y):
-        super().__init__(app.all_sprites)
-        tile_images = {
-            'wall': app.load_image('block.jpg'),
-            'empty': app.load_image('empty.jpg'),
-            'img': app.load_image('img.png')
-        }
-        player_image = app.load_image('player.jpg')
-        tile_width = tile_height = 50
-        self.image = tile_images[tile_type]
-        self.rect = self.image.get_rect().move(
-            tile_width * pos_x, tile_height * pos_y)
+GRAVITY = Vector2(0, 0.86)
 
 
 class Hero(pygame.sprite.Sprite):
-    def __init__(self, app, pos):
-        global player_start_x, player_start_y, player_x, player_y
-        super().__init__(app.all_sprites, app.player_group)
+    def __init__(self, app, image, pos, platforms, *groups):
+        super().__init__(*groups) # app.all_sprites
         self.image = app.load_image("player.jpg")
-        self.rect = self.image.get_rect()
+        self.rect = self.image.get_rect(center=pos)
         self.app = app
-        # вычисляем маску для эффективного сравнения
-        self.mask = pygame.mask.from_surface(self.image)
-        self.rect = self.image.get_rect().move(
-            app.tile_width * pos[0] + 15, app.tile_height * pos[1] + 5)
-        player_start_x = self.rect.x
-        player_start_y = self.rect.y
-        player_x = player_start_x
-        player_y = player_start_y
+        self.jump_amount = 11
+        self.vel = Vector2(0, 0) # скорость
+        self.rect = self.image.get_rect(center=pos)
+        self.platforms = platforms  # все объекты(блоки, треугольники, монеты)
+        self.is_jump = False # прыгал или нет
+        self.on_ground = False # находится на земле или нет
 
-    def angled_jump(self, start_x, start_y, initial_speed, jump_angle, gravity, current_time):
-        jump_angle_rad = math.radians(jump_angle)
-        initial_velocity_x = initial_speed * math.cos(jump_angle_rad)
-        initial_velocity_y = -initial_speed * math.sin(jump_angle_rad)
-        velocity_y = initial_velocity_y + gravity * current_time
-        velocity_x = initial_velocity_x
-        x = start_x + velocity_x * current_time
-        y = start_y + velocity_y * current_time - 0.5 * gravity * current_time ** 2
-        return x, y
+    def collide(self, yvel, platforms): # столкновения
+        global coins
+        for p in platforms:
+            if pygame.sprite.collide_rect(self, p):
+                if isinstance(p, Block):
+                    if yvel > 0:
+                        self.rect.bottom = p.rect.top
+                        self.vel.y = 0
+                        self.on_ground = True
+                        self.is_jump = False
+                    elif yvel < 0:
+                        self.rect.top = p.rect.bottom
+                    else:
+                        self.vel.x = 0
+                        self.rect.right = p.rect.left
 
-    def update_jump(self, pos):
-        self.rect.x = pos[0]
-        self.rect.y = pos[1]
+    def update(self):
+        if self.is_jump:
+            if self.on_ground:
+                self.vel.y = -self.jump_amount
+        if not self.on_ground:
+            self.vel = self.vel + GRAVITY
+            if self.vel.y > 100:
+                self.vel.y = 100
+        self.collide(0, self.platforms)
+        self.rect.top = self.rect.top + self.vel.y
+        self.on_ground = False
+        self.collide(self.vel.y, self.platforms)
 
-    def update(self, pos):
-        self.rect.x += pos[0]
+
+class Draw(pygame.sprite.Sprite):
+    def __init__(self, image, pos, *groups):
+        super().__init__(*groups)
+        self.image = image
+        self.rect = self.image.get_rect(topleft=pos)
+
+
+class Block(Draw):
+    def __init__(self, image, pos, *groups):
+        super().__init__(image, pos, *groups)
+
+
+class Triangle(Draw):
+    def __init__(self, image, pos, *groups):
+        super().__init__(image, pos, *groups)
+
+
+def Spin(surf, image, pos, item, angle):
+    width, height = image.get_size()
+    box = [Vector2(0, 0), Vector2(width, 0), Vector2(width, -height), Vector2(0, -height)]
+    box_spin = []
+    for b in box:
+        box_spin.append(b.rotate(angle))
+    min_box = (min(box_spin, key=lambda p: p[0])[0], min(box_spin, key=lambda p: p[1])[1])
+    max_box = (max(box_spin, key=lambda p: p[0])[0], max(box_spin, key=lambda p: p[1])[1])
+    turn = Vector2(item[0], -item[1])
+    turn_spin = turn.rotate(angle)
+    turn_move = turn_spin - turn
+    first = (pos[0] - item[0] + min_box[0] - turn_move[0], pos[1] - item[1] - max_box[1] + turn_move[1])
+    spin_img = pygame.transform.rotozoom(image, angle, 1)
+    surf.blit(spin_img, first)
 
 
 class App:
     def __init__(self):
         pygame.init()
-        self.width, self.height = 700, 400
+        self.width = 800
+        self.height = 600
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption('ГеометрияДэш')
         self.hero = None
+        self.angle = 0
         self.all_sprites = pygame.sprite.Group()
-        self.tile_width = self.tile_height = 50
-        self.tiles_group = pygame.sprite.Group()
-        self.player_group = pygame.sprite.Group()
+        self.elements = pygame.sprite.Group()
         self.fps = 50
-        self.camera = Camera()
-        self.alpha_surf = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+        self.Camera = 0
 
     def terminate(self):
         pygame.quit()
         sys.exit()
+
+    def move_map(self):
+        for sprite in self.elements:
+            sprite.rect.x -= self.Camera
 
     def load_image(self, name, colorkey=None):
         fullname = os.path.join('data', name)
@@ -100,21 +124,17 @@ class App:
         return image
 
     def generate_level(self, level):
-        new_player, x, y = None, None, None
-        for y in range(len(level)):
-            for x in range(len(level[y])):
-                #if level[y][x] == '.':
-                 #   Tile(self, 'empty', x, y)
-                if level[y][x] == '#':
-                    self.tiles_group.add(Tile(self, 'wall', x, y))
-                if level[y][x] == '!':
-                    Tile(self, 'empty', x, y)
-                    self.tiles_group.add(Tile(self, 'img', x, y))
-                elif level[y][x] == '@':
-                    Tile(self, 'empty', x, y)
-                    new_player = Hero(self, (x, y))
-        # вернем игрока, а также размер поля в клетках
-        return new_player, x, y
+        x = 0
+        y = 0
+        for i in range(len(level)):
+            for j in range(len(level[i])):
+                if level[i][j] == '#':
+                    Block(self.load_image('block.jpg'), (x, y), self.elements)
+                x += 35
+            y += 35
+            x = 0
+        new_player = Hero(self, self.load_image('player.jpg'), (100, 100), self.elements, self.all_sprites)
+        return new_player
 
     def load_level(self, filename):
         filename = "data/" + filename
@@ -124,9 +144,10 @@ class App:
         return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
     def run_game(self, map):
-        global player_start_x, player_start_y, player_x, player_y, initial_speed, jump_angle, gravity, jump_start_time, is_jumping
+        icon = self.load_image("player.jpg")
+        pygame.display.set_icon(icon)
         run = True
-        self.hero, level_x, level_y = self.generate_level(self.load_level('map.txt'))
+        self.hero = self.generate_level(self.load_level('map.txt'))
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -135,29 +156,21 @@ class App:
                     self.end_screen()
                     run = False
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_UP] and not is_jumping:
-                is_jumping = True
-                jump_start_time = pygame.time.get_ticks() / 1000
-            if is_jumping:
-                current_time = (pygame.time.get_ticks() / 1000) - jump_start_time
-                player_x, player_y = self.hero.angled_jump(player_start_x, player_start_y, initial_speed, jump_angle,
-                                                           gravity,
-                                                           current_time)
-                if player_y > player_start_y:  # Если игрок вернулся на землю
-                    is_jumping = False
-                    player_x = player_start_x
-                    player_y = player_start_y
-                self.hero.update_jump((player_x, player_y))
-            else:
-                self.hero.update((7, 0))
+            self.hero.vel.x = 5  # скорость
+            if keys[pygame.K_SPACE] or keys[pygame.K_UP]:
+                self.hero.is_jump = True
+            self.all_sprites.update()
+            self.Camera = self.hero.vel.x
+            self.move_map()
             self.screen.fill(pygame.Color('blue'))
-            self.all_sprites.draw(self.screen)
-            self.player_group.draw(self.screen)
+            if self.hero.is_jump:
+                self.angle -= 8.1712
+                Spin(self.screen, self.hero.image, self.hero.rect.center, (16, 16), self.angle)
+            else:
+                self.all_sprites.draw(self.screen)
+            self.elements.draw(self.screen)
             pygame.display.flip()
-            self.clock.tick(10)
-            self.camera.update(self.hero)
-            for sprite in self.all_sprites:
-                self.camera.apply(sprite)
+            self.clock.tick(50)
 
     def start_screen(self):
         intro_text = [" ГеометрияДэш", "",
@@ -248,21 +261,6 @@ class App:
             self.clock.tick(self.fps)
 
 
-class Camera:
-    def __init__(self):
-        self.dx = 0
-        self.dy = 0
-
-    def apply(self, obj):
-        obj.rect.x += self.dx
-        obj.rect.y += self.dy
-
-    def update(self, target):
-        self.dx = -(target.rect.x + target.rect.w // 2 - app.width // 2 + 210)
-       # self.dy = -(target.rect.y + target.rect.h // 2 - app.height // 2 - 100)
-
-
 if __name__ == '__main__':
     app = App()
     app.start_screen()
-    app.run_game()
