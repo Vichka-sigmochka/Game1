@@ -5,27 +5,27 @@ from pygame.draw import rect
 import sqlite3
 from pygame.math import Vector2
 
-
 jump_start_time = 0
 GRAVITY = Vector2(0, 0.86)
+coins = 0
 
 
 class Hero(pygame.sprite.Sprite):
     def __init__(self, app, image, pos, platforms, *groups):
-        super().__init__(*groups) # app.all_sprites
+        super().__init__(*groups)  # app.all_sprites
         self.image = app.load_image("player.jpg")
         self.rect = self.image.get_rect(center=pos)
         self.app = app
         self.jump_amount = 11
-        self.vel = Vector2(0, 0) # скорость
+        self.vel = Vector2(0, 0)  # скорость
         self.rect = self.image.get_rect(center=pos)
         self.platforms = platforms  # все объекты(блоки, треугольники, монеты)
-        self.is_jump = False # прыгал или нет
-        self.on_ground = False # находится на земле или нет
+        self.is_jump = False  # прыгал или нет
+        self.on_ground = False  # находится на земле или нет
         self.died = False  # умер или нет
-        self.win = False # выиграл или нет
+        self.win = False  # выиграл или нет
 
-    def collide(self, yvel, platforms): # столкновения
+    def collide(self, yvel, platforms):  # столкновения
         global coins
         for p in platforms:
             if pygame.sprite.collide_rect(self, p):
@@ -49,8 +49,6 @@ class Hero(pygame.sprite.Sprite):
                 if isinstance(p, End):
                     self.win = True
 
-
-
     def update(self):
         if self.is_jump:
             if self.on_ground:
@@ -63,6 +61,7 @@ class Hero(pygame.sprite.Sprite):
         self.rect.top = self.rect.top + self.vel.y
         self.on_ground = False
         self.collide(self.vel.y, self.platforms)
+
 
 class Draw(pygame.sprite.Sprite):
     def __init__(self, img, pos, *groups):
@@ -152,6 +151,12 @@ class App:
             for j in range(len(level[i])):
                 if level[i][j] == '#':
                     Block(self.load_image('block.jpg'), (x, y), self.elements)
+                if level[i][j] == '!':
+                    Triangle(self.load_image('triangle.png'), (x, y), self.elements)
+                if level[i][j] == 'C':
+                    Coin(self.load_image('money.jpg'), (x, y), self.elements)
+                if level[i][j] == '@':
+                    End(self.load_image('end.jpg'), (x, y), self.elements)
                 x += 35
             y += 35
             x = 0
@@ -222,7 +227,8 @@ class App:
                 if event.type == pygame.QUIT:
                     self.terminate()
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[1] <= self.height / 2 + 20:
+                    if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[
+                        1] <= self.height / 2 + 20:
                         self.con = sqlite3.connect("result1.sqlite")
                         cur = self.con.cursor()
                         sqlite_insert_with_param = """INSERT INTO result (name, score)
@@ -232,10 +238,12 @@ class App:
                         self.con.commit()
                         self.con.close()
                         app.run_game('map.txt')
-                    if self.width / 2 - 70 <= mouse[0] <= self.width / 2 - 10 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
+                    if self.width / 2 - 70 <= mouse[0] <= self.width / 2 - 10 and self.height / 2 - 100 <= mouse[
+                        1] <= self.height / 2 - 40:
                         self.click1 = True
                         self.click2 = False
-                    if self.width / 2 + 10 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
+                    if self.width / 2 + 10 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 100 <= mouse[
+                        1] <= self.height / 2 - 40:
                         self.click1 = False
                         self.click2 = True
                     if self.input_rect.collidepoint(event.pos):
@@ -257,11 +265,13 @@ class App:
             if keys[pygame.K_SPACE] and self.start:
                 app.run_game('map.txt')
             mouse = pygame.mouse.get_pos()
-            if self.start or self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[1] <= self.height / 2 + 20:
+            if self.start or self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[
+                1] <= self.height / 2 + 20:
                 pygame.draw.rect(self.screen, (128, 255, 0), [self.width / 2 - 70, self.height / 2 - 20, 140, 40])
             else:
                 pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 - 70, self.height / 2 - 20, 140, 40])
-            if self.width / 2 - 70 <= mouse[0] <= self.width / 2 - 10 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
+            if self.width / 2 - 70 <= mouse[0] <= self.width / 2 - 10 and self.height / 2 - 100 <= mouse[
+                1] <= self.height / 2 - 40:
                 if self.click1:
                     pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 - 70, self.height / 2 - 100, 60, 60])
                 else:
@@ -272,7 +282,8 @@ class App:
                 else:
                     pygame.draw.rect(self.screen, (0, 0, 0), [self.width / 2 - 70, self.height / 2 - 100, 60, 60])
                     pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 - 70, self.height / 2 - 100, 60, 60], 5)
-            if self.width / 2 + 10 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 100 <= mouse[1] <= self.height / 2 - 40:
+            if self.width / 2 + 10 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 100 <= mouse[
+                1] <= self.height / 2 - 40:
                 if self.click2:
                     pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 + 10, self.height / 2 - 100, 60, 60])
                 else:
