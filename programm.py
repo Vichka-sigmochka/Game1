@@ -5,6 +5,7 @@ from pygame.draw import rect
 import sqlite3
 from pygame.math import Vector2
 
+
 jump_start_time = 0
 GRAVITY = Vector2(0, 0.86)
 coins = 0
@@ -40,6 +41,7 @@ class Hero(pygame.sprite.Sprite):
                     else:
                         self.vel.x = 0
                         self.rect.right = p.rect.left
+                        self.died = True
                 if isinstance(p, Triangle):
                     self.died = True
                 if isinstance(p, Coin):
@@ -61,6 +63,7 @@ class Hero(pygame.sprite.Sprite):
         self.rect.top = self.rect.top + self.vel.y
         self.on_ground = False
         self.collide(self.vel.y, self.platforms)
+        died_or_won(self.win, self.died)
 
 
 class Draw(pygame.sprite.Sprite):
@@ -104,6 +107,11 @@ def Spin(surf, image, pos, item, angle):
     first = (pos[0] - item[0] + min_box[0] - turn_move[0], pos[1] - item[1] - max_box[1] + turn_move[1])
     spin_img = pygame.transform.rotozoom(image, angle, 1)
     surf.blit(spin_img, first)
+
+
+def died_or_won(w, d):
+    if d:
+        app.end_screen()
 
 
 class App:
