@@ -214,7 +214,7 @@ class App:
             self.screen.blit(string_rendered, intro_rect)
         self.base_font = pygame.font.Font(None, 40)
         self.text = ''
-        self.input_rect = pygame.Rect(275, 250, 150, 40)
+        self.input_rect = pygame.Rect(310, 350, 180, 40)
         self.color = pygame.Color((0, 255, 0))
         self.active = False
         while True:
@@ -223,9 +223,9 @@ class App:
                     self.terminate()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[1] <= self.height / 2 + 20:
-                        self.con = sqlite3.connect("result.bd")
+                        self.con = sqlite3.connect("result1.sqlite")
                         cur = self.con.cursor()
-                        sqlite_insert_with_param = """INSERT INTO file_kod (name, score)
+                        sqlite_insert_with_param = """INSERT INTO result (name, score)
                                                                               VALUES (?, ?);"""
                         data_tuple = (self.text, 0)
                         cur.execute(sqlite_insert_with_param, data_tuple)
@@ -296,7 +296,7 @@ class App:
             pygame.draw.rect(self.screen, self.color, self.input_rect)
             self.text1 = self.base_font.render(self.text, True, (255, 255, 255))
             self.screen.blit(self.text1, (self.input_rect.x + 5, self.input_rect.y + 5))
-            self.input_rect.w = max(150, self.text1.get_width() + 10)
+            self.input_rect.w = max(180, self.text1.get_width() + 10)
             pygame.display.flip()
             self.clock.tick(self.fps)
 
