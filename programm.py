@@ -195,6 +195,7 @@ class App:
         self.load_music('music1.mp3')
         pygame.mixer.music.play()
         while self.run:
+            print(3)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
