@@ -49,8 +49,8 @@ class Hero(pygame.sprite.Sprite):
                     died = True
                 if isinstance(p, AnimatedSprite):
                     coins += 1
-                    p.rect.x = 0
-                    p.rect.y = 0
+                    p.rect.x = -100
+                    p.rect.y = -100
                 if isinstance(p, End):
                     win = True
                 keys = pygame.key.get_pressed()
@@ -275,6 +275,8 @@ class App:
                 group.update()
                 group.draw(self.screen)
             tries = font.render(f" Attempt {str(attempt)}", True, (255, 255, 255))
+            for i in range(1, coins + 1):
+                self.screen.blit(self.load_image('coin.png'), (735 - i * 35, 50))
             self.screen.blit(tries, (600, 20))
             pygame.display.flip()
             self.clock.tick(60)
