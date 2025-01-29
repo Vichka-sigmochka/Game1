@@ -47,12 +47,16 @@ class Hero(pygame.sprite.Sprite):
                         died = True
                 if isinstance(p, Triangle):
                     died = True
-                if isinstance(p, Coin):
+                if isinstance(p, AnimatedSprite):
                     coins += 1
                     p.rect.x = 0
                     p.rect.y = 0
                 if isinstance(p, End):
                     win = True
+                keys = pygame.key.get_pressed()
+                if isinstance(p, Gif) and (keys[pygame.K_UP] or keys[pygame.K_SPACE]):
+                    app.screen.blit(app.load_image("sphere.gif"), p.rect.center)
+                    self.vel.y = -(self.jump_amount + 2)
 
     def update(self):
         global win, died
@@ -87,14 +91,37 @@ class Triangle(Draw):
         super().__init__(img, pos, *groups)
 
 
-class Coin(Draw):
-    def __init__(self, img, pos, *groups):
-        super().__init__(img, pos, *groups)
-
-
 class End(Draw):
     def __init__(self, img, pos, *groups):
         super().__init__(img, pos, *groups)
+
+
+class Gif(Draw):
+    def __init__(self, img, pos, *groups):
+        super().__init__(img, pos, *groups)
+
+
+class AnimatedSprite(pygame.sprite.Sprite):
+    def __init__(self, app, sheet, columns, rows, x, y):
+        super().__init__(app.elements)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
 
 
 def Spin(surf, image, pos, item, angle):
@@ -140,6 +167,7 @@ class App:
         self.fps = 50
         self.Camera = 0
         self.run = True
+        self.coins = []
 
     def terminate(self):
         pygame.quit()
@@ -180,8 +208,11 @@ class App:
                     Block(self.load_image('block.jpg'), (x, y), self.elements)
                 if level[i][j] == '!':
                     Triangle(self.load_image('triangle.png'), (x, y), self.elements)
+                if level[i][j] == 'G':
+                    Gif(self.load_image('sphere.png'), (x, y), self.elements)
                 if level[i][j] == 'C':
-                    Coin(self.load_image('money.png'), (x, y), self.elements)
+                    coin = AnimatedSprite(self, self.load_image("gold.png"), 8, 1, x, y)
+                    self.coins.append(pygame.sprite.Group(coin))
                 if level[i][j] == '@':
                     End(self.load_image('end.jpg'), (x, y), self.elements)
                 x += 35
@@ -200,6 +231,8 @@ class App:
     def run_game(self, map, n=0):
         global coins, attempt
         attempt += 1
+        fon = pygame.transform.scale(self.load_image('bakeground.jpg'), (self.width, self.height))
+        self.screen.blit(fon, (0, 0))
         coins = 0
         icon = self.load_image("player.jpg")
         pygame.display.set_icon(icon)
@@ -230,13 +263,16 @@ class App:
             self.all_sprites.update()
             self.Camera = self.hero.vel.x
             self.move_map()
-            self.screen.fill(pygame.Color('blue'))
+            self.screen.blit(fon, (0, 0))
             if self.hero.is_jump:
                 self.angle -= 8.1712
                 Spin(self.screen, self.hero.image, self.hero.rect.center, (16, 16), self.angle)
             else:
                 self.all_sprites.draw(self.screen)
             self.elements.draw(self.screen)
+            for group in self.coins:
+                group.update()
+                group.draw(self.screen)
             pygame.display.flip()
             self.clock.tick(60)
 
@@ -402,6 +438,8 @@ class App:
                 self.angle = 0
                 self.all_sprites = pygame.sprite.Group()
                 self.elements = pygame.sprite.Group()
+                for i in range(len(self.coins)):
+                    self.coins[i] = pygame.sprite.Group()
                 self.Camera = 0
                 self.run = True
                 app.run_game('map.txt', 1)
