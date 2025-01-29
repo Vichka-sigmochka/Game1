@@ -10,6 +10,10 @@ GRAVITY = Vector2(0, 0.86)
 coins = 0
 died = False  # умер или нет
 win = False  # выиграл или нет
+level = 1
+attempt = 0
+text = ''
+levels = []
 
 
 class Hero(pygame.sprite.Sprite):
@@ -51,6 +55,7 @@ class Hero(pygame.sprite.Sprite):
                     win = True
 
     def update(self):
+        global win, died
         if self.is_jump:
             if self.on_ground:
                 self.vel.y = -self.jump_amount
@@ -109,8 +114,15 @@ def Spin(surf, image, pos, item, angle):
 
 
 def died_or_won(w, d):
+    global level, levels
     if d:
         app.end_screen()
+    if w:
+        levels += [level]
+        if len(levels) == 1:
+            app.win_screen1()
+        else:
+            app.win_screen2()
 
 
 class App:
@@ -186,12 +198,13 @@ class App:
         return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
     def run_game(self, map, n=0):
-        global coins
+        global coins, attempt
+        attempt += 1
         coins = 0
         icon = self.load_image("player.jpg")
         pygame.display.set_icon(icon)
         self.run = True
-        self.hero = self.generate_level(self.load_level('map.txt'))
+        self.hero = self.generate_level(self.load_level(map))
         if n == 1:
             pygame.mixer.music.pause()
         self.load_music('music1.mp3')
@@ -228,6 +241,7 @@ class App:
             self.clock.tick(60)
 
     def start_screen(self):
+        global level, text
         intro_text = [" ГеометрияДэш", "",
                       "Выбери уровень"]
         fon = pygame.transform.scale(self.load_image('screen.jpg'), (self.width, self.height))
@@ -254,7 +268,6 @@ class App:
         text_coord += intro_rect.height
         self.screen.blit(string_rendered, intro_rect)
         self.base_font = pygame.font.Font(None, 35)
-        self.text = ''
         self.input_rect = pygame.Rect(400, 345, 180, 35)
         self.color = pygame.Color((0, 255, 0))
         self.active = False
@@ -265,15 +278,20 @@ class App:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[
                         1] <= self.height / 2 + 20:
-                        # self.con = sqlite3.connect("result1.sqlite")
-                        # cur = self.con.cursor()
-                        # sqlite_insert_with_param = """INSERT INTO result (name, score)
-                        #                                                     VALUES (?, ?);"""
-                        # data_tuple = (self.text, 0)
-                        # cur.execute(sqlite_insert_with_param, data_tuple)
-                        # self.con.commit()
-                        # self.con.close()
-                        app.run_game('map.txt')
+                        if self.click1:
+                            level = 1
+                            # self.con = sqlite3.connect("result1.sqlite")
+                            # cur = self.con.cursor()
+                            # sqlite_insert_with_param = """INSERT INTO result (name, score)
+                            #                                                     VALUES (?, ?);"""
+                            # data_tuple = (self.text, 0)
+                            # cur.execute(sqlite_insert_with_param, data_tuple)
+                            # self.con.commit()
+                            # self.con.close()
+                            app.run_game('map1.txt')
+                        else:
+                            level = 2
+                            #app.run_game('map2.txt')
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 - 10 and self.height / 2 - 100 <= mouse[
                         1] <= self.height / 2 - 40:
                         self.click1 = True
@@ -291,9 +309,9 @@ class App:
                             self.active = True
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE and self.click3:
-                        self.text = self.text[0:-1]
+                        text = text[0:-1]
                     elif self.click3:
-                        self.text += event.unicode
+                        text += event.unicode
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RIGHT]:
                 self.click1 = False
@@ -304,7 +322,7 @@ class App:
             if keys[pygame.K_DOWN]:
                 self.start = True
             if keys[pygame.K_SPACE] and self.start:
-                app.run_game('map.txt')
+                app.run_game('map1.txt')
             mouse = pygame.mouse.get_pos()
             if self.start or self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[
                 1] <= self.height / 2 + 20:
@@ -351,9 +369,9 @@ class App:
             else:
                 self.color = pygame.Color((0, 255, 0))
             pygame.draw.rect(self.screen, self.color, self.input_rect)
-            if len(self.text) > 7:
-                self.text = self.text[0:-1]
-            self.text1 = self.base_font.render(self.text, True, (255, 255, 255))
+            if len(text) > 7:
+                text = text[0:-1]
+            self.text1 = self.base_font.render(text, True, (255, 255, 255))
             self.screen.blit(self.text1, (self.input_rect.x + 5, self.input_rect.y + 5))
             self.input_rect.w = 180
             pygame.display.flip()
@@ -387,6 +405,114 @@ class App:
                 self.Camera = 0
                 self.run = True
                 app.run_game('map.txt', 1)
+            pygame.display.flip()
+            self.clock.tick(self.fps)
+
+    def win_screen1(self):
+        global coins, attempt, level, win, levels
+        self.hero = None
+        self.angle = 0
+        self.all_sprites = pygame.sprite.Group()
+        self.elements = pygame.sprite.Group()
+        self.Camera = 0
+        self.run = True
+        win = False
+        pygame.mixer.music.pause()
+        #self.load_music('Game_Over.mp3')
+        #pygame.mixer.music.play()
+        intro_text = [f"Вы набрали {coins} монет", "",
+                      f"Вы потратили {attempt} попыток"]
+        coins = 0
+        attempt = 0
+        fon = pygame.transform.scale(self.load_image('win.jpg'), (self.width, self.height))
+        self.screen.blit(fon, (0, 0))
+        font = pygame.font.Font(None, 30)
+        text_coord = 50
+        for line in intro_text:
+            string_rendered = font.render(line, 0, pygame.Color('white'))
+            intro_rect = string_rendered.get_rect()
+            text_coord += 10
+            intro_rect.top = text_coord
+            intro_rect.x = self.width / 2 - len(line) * 6
+            text_coord += intro_rect.height
+            self.screen.blit(string_rendered, intro_rect)
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.terminate()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if 60 <= mouse[0] <= 410 and 440 <= mouse[1] <= 500:
+                        app.start_screen()
+                    if 480 <= mouse[0] <= 730 and 440 <= mouse[1] <= 500:
+                        level = 2
+                        app.run_game('map.txt')
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_3:
+                        pygame.mixer.music.pause()
+                    elif event.key == pygame.K_2:
+                        pygame.mixer.music.unpause()
+                        pygame.mixer.music.set_volume(0.5)
+                    pygame.time.delay(20)
+            mouse = pygame.mouse.get_pos()
+            pygame.draw.rect(self.screen, (128, 255, 0), [60, 440, 350, 60])
+            if 480 <= mouse[0] <= 730 and 440 <= mouse[1] <= 500:
+                pygame.draw.rect(self.screen, (128, 255, 0), [480, 440, 250, 60])
+            else:
+                pygame.draw.rect(self.screen, (0, 0, 0), [480, 440, 250, 60])
+                pygame.draw.rect(self.screen, (0, 255, 0), [480, 440, 250, 60], 5)
+            string_rendered = font.render("Вернуться на стартовую страницу", 1, pygame.Color('white'))
+            self.screen.blit(string_rendered, (65, 460))
+            string_rendered = font.render(f"Пройти уровень {3 - levels[0]}", 1, pygame.Color('white'))
+            self.screen.blit(string_rendered, (485, 460))
+            pygame.display.flip()
+            self.clock.tick(self.fps)
+
+    def win_screen2(self):
+        global coins, attempt, level, win
+        self.hero = None
+        self.angle = 0
+        self.all_sprites = pygame.sprite.Group()
+        self.elements = pygame.sprite.Group()
+        self.Camera = 0
+        self.run = True
+        win = False
+        pygame.mixer.music.pause()
+        # self.load_music('Game_Over.mp3')
+        # pygame.mixer.music.play()
+        intro_text = ["Вы прошли все уровни", "", f"Вы набрали в сумме {coins} монет", "",
+                      f"Вы потрали в сумме {attempt} попыток"] #данные будут браться из таблица
+        coins = 0
+        attempt = 0
+        fon = pygame.transform.scale(self.load_image('win.jpg'), (self.width, self.height))
+        self.screen.blit(fon, (0, 0))
+        font = pygame.font.Font(None, 30)
+        text_coord = 50
+        for line in intro_text:
+            string_rendered = font.render(line, 0, pygame.Color('white'))
+            intro_rect = string_rendered.get_rect()
+            text_coord += 10
+            intro_rect.top = text_coord
+            intro_rect.x = self.width / 2 - len(line) * 6
+            text_coord += intro_rect.height
+            self.screen.blit(string_rendered, intro_rect)
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.terminate()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if 200 <= mouse[0] <= 550 and 440 <= mouse[1] <= 500:
+                        app.start_screen()
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_3:
+                        pygame.mixer.music.pause()
+                    elif event.key == pygame.K_2:
+                        pygame.mixer.music.unpause()
+                        pygame.mixer.music.set_volume(0.5)
+                    pygame.time.delay(20)
+            mouse = pygame.mouse.get_pos()
+            pygame.draw.rect(self.screen, (128, 255, 0), [200, 440, 350, 60])
+            string_rendered = font.render("Вернуться на стартовую страницу", 1, pygame.Color('white'))
+            self.screen.blit(string_rendered, (205, 460))
             pygame.display.flip()
             self.clock.tick(self.fps)
 
