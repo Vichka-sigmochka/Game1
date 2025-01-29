@@ -293,6 +293,7 @@ class App:
         self.start = False
         font = pygame.font.Font(None, 30)
         text_coord = 50
+        #player = Hero(self, self.load_image('player.jpg'), (0, 550), self.elements, self.all_sprites)
         for line in intro_text:
             string_rendered = font.render(line, 0, pygame.Color('black'))
             intro_rect = string_rendered.get_rect()
@@ -399,6 +400,7 @@ class App:
                    self.active = True
                 else:
                    self.active = False
+            pygame.draw.line(self.screen, (0, 255, 0), [0, 550], [800, 550], 10)
             string_rendered = font.render("Start", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 - 22, self.height / 2 - 7))
             string_rendered = font.render("1", 1, pygame.Color('white'))
