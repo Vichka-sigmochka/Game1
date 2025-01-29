@@ -49,6 +49,10 @@ class Hero(pygame.sprite.Sprite):
                     p.rect.y = 0
                 if isinstance(p, End):
                     win = True
+                keys = pygame.key.get_pressed()
+                if isinstance(p, Gif) and (keys[pygame.K_UP] or keys[pygame.K_SPACE]):
+                    app.screen.blit(app.load_image("sphere.gif"), p.rect.center)
+                    self.vel.y = -(self.jump_amount + 2)
 
     def update(self):
         if self.is_jump:
@@ -83,6 +87,11 @@ class Triangle(Draw):
 
 
 class End(Draw):
+    def __init__(self, img, pos, *groups):
+        super().__init__(img, pos, *groups)
+
+
+class Gif(Draw):
     def __init__(self, img, pos, *groups):
         super().__init__(img, pos, *groups)
 
@@ -186,6 +195,8 @@ class App:
                     Block(self.load_image('block.jpg'), (x, y), self.elements)
                 if level[i][j] == '!':
                     Triangle(self.load_image('triangle.png'), (x, y), self.elements)
+                if level[i][j] == 'G':
+                    Gif(self.load_image('sphere.png'), (x, y), self.elements)
                 if level[i][j] == 'C':
                     coin = AnimatedSprite(self, self.load_image("gold.png"), 8, 1, x, y)
                     self.coins.append(pygame.sprite.Group(coin))
@@ -406,6 +417,8 @@ class App:
                 self.angle = 0
                 self.all_sprites = pygame.sprite.Group()
                 self.elements = pygame.sprite.Group()
+                for i in range(len(self.coins)):
+                    self.coins[i] = pygame.sprite.Group()
                 self.Camera = 0
                 self.run = True
                 app.run_game('map.txt', 1)
