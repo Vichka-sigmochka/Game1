@@ -194,7 +194,6 @@ class App:
         self.hero = self.generate_level(self.load_level('map.txt'))
         self.load_music('music1.mp3')
         pygame.mixer.music.play()
-        while run:
         while self.run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
