@@ -144,6 +144,14 @@ class App:
             image = image.convert_alpha()
         return image
 
+
+    def load_music(self, name):
+        fullname = os.path.join('data', name)
+        if not os.path.isfile(fullname):
+            print(f"Файл с музыкой '{fullname}' не найден")
+            sys.exit()
+        pygame.mixer.music.load(fullname)
+
     def generate_level(self, level):
         x = 0
         y = 0
@@ -175,6 +183,8 @@ class App:
         pygame.display.set_icon(icon)
         run = True
         self.hero = self.generate_level(self.load_level('map.txt'))
+        self.load_music('music1.mp3')
+        pygame.mixer.music.play()
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -182,6 +192,13 @@ class App:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_1:  # измениться при реализации столкновений
                     self.end_screen()
                     run = False
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_3:
+                        pygame.mixer.music.pause()
+                    elif event.key == pygame.K_2:
+                        pygame.mixer.music.unpause()
+                        pygame.mixer.music.set_volume(0.5)
+                    pygame.time.delay(20)
             keys = pygame.key.get_pressed()
             self.hero.vel.x = 5  # скорость
             if keys[pygame.K_SPACE] or keys[pygame.K_UP]:
