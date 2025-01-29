@@ -43,7 +43,7 @@ class Hero(pygame.sprite.Sprite):
                         died = True
                 if isinstance(p, Triangle):
                     died = True
-                if isinstance(p, Coin):
+                if isinstance(p, AnimatedSprite):
                     coins += 1
                     p.rect.x = 0
                     p.rect.y = 0
@@ -82,14 +82,32 @@ class Triangle(Draw):
         super().__init__(img, pos, *groups)
 
 
-class Coin(Draw):
-    def __init__(self, img, pos, *groups):
-        super().__init__(img, pos, *groups)
-
-
 class End(Draw):
     def __init__(self, img, pos, *groups):
         super().__init__(img, pos, *groups)
+
+
+class AnimatedSprite(pygame.sprite.Sprite):
+    def __init__(self, app, sheet, columns, rows, x, y):
+        super().__init__(app.elements)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
 
 
 def Spin(surf, image, pos, item, angle):
@@ -112,7 +130,6 @@ def died_or_won(w, d):
     if d:
         app.end_screen()
 
-
 class App:
     def __init__(self):
         pygame.init()
@@ -128,6 +145,8 @@ class App:
         self.fps = 50
         self.Camera = 0
         self.run = True
+        self.coins = []
+
 
     def terminate(self):
         pygame.quit()
@@ -169,7 +188,8 @@ class App:
                 if level[i][j] == '!':
                     Triangle(self.load_image('triangle.png'), (x, y), self.elements)
                 if level[i][j] == 'C':
-                    Coin(self.load_image('money.png'), (x, y), self.elements)
+                    coin = AnimatedSprite(self, self.load_image("gold.png"), 8, 1, x, y)
+                    self.coins.append(pygame.sprite.Group(coin))
                 if level[i][j] == '@':
                     End(self.load_image('end.jpg'), (x, y), self.elements)
                 x += 35
@@ -197,7 +217,6 @@ class App:
         self.load_music('music1.mp3')
         pygame.mixer.music.play()
         while self.run:
-            print(3)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
@@ -225,6 +244,9 @@ class App:
             else:
                 self.all_sprites.draw(self.screen)
             self.elements.draw(self.screen)
+            for group in self.coins:
+                group.update()
+                group.draw(self.screen)
             pygame.display.flip()
             self.clock.tick(60)
 
