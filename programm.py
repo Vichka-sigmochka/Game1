@@ -13,6 +13,7 @@ win = False  # выиграл или нет
 level = 1
 attempt = 0
 text = ''
+levels = []
 
 
 class Hero(pygame.sprite.Sprite):
@@ -113,11 +114,12 @@ def Spin(surf, image, pos, item, angle):
 
 
 def died_or_won(w, d):
-    global level
+    global level, levels
     if d:
         app.end_screen()
     if w:
-        if level == 1:
+        levels += [level]
+        if len(levels) == 1:
             app.win_screen1()
         else:
             app.win_screen2()
@@ -407,7 +409,7 @@ class App:
             self.clock.tick(self.fps)
 
     def win_screen1(self):
-        global coins, attempt, level, win
+        global coins, attempt, level, win, levels
         self.hero = None
         self.angle = 0
         self.all_sprites = pygame.sprite.Group()
@@ -415,13 +417,13 @@ class App:
         self.Camera = 0
         self.run = True
         win = False
-        coins = 0
-        attempt = 0
         pygame.mixer.music.pause()
         #self.load_music('Game_Over.mp3')
         #pygame.mixer.music.play()
         intro_text = [f"Вы набрали {coins} монет", "",
-                      f"Вы потрали {attempt} попыток"]
+                      f"Вы потратили {attempt} попыток"]
+        coins = 0
+        attempt = 0
         fon = pygame.transform.scale(self.load_image('win.jpg'), (self.width, self.height))
         self.screen.blit(fon, (0, 0))
         font = pygame.font.Font(None, 30)
@@ -451,7 +453,6 @@ class App:
                         pygame.mixer.music.unpause()
                         pygame.mixer.music.set_volume(0.5)
                     pygame.time.delay(20)
-            keys = pygame.key.get_pressed()
             mouse = pygame.mouse.get_pos()
             pygame.draw.rect(self.screen, (128, 255, 0), [60, 440, 350, 60])
             if 480 <= mouse[0] <= 730 and 440 <= mouse[1] <= 500:
@@ -461,13 +462,59 @@ class App:
                 pygame.draw.rect(self.screen, (0, 255, 0), [480, 440, 250, 60], 5)
             string_rendered = font.render("Вернуться на стартовую страницу", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (65, 460))
-            string_rendered = font.render("Пройти уровень 2", 1, pygame.Color('white'))
+            string_rendered = font.render(f"Пройти уровень {3 - levels[0]}", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (485, 460))
             pygame.display.flip()
             self.clock.tick(self.fps)
 
     def win_screen2(self):
-        pass
+        global coins, attempt, level, win
+        self.hero = None
+        self.angle = 0
+        self.all_sprites = pygame.sprite.Group()
+        self.elements = pygame.sprite.Group()
+        self.Camera = 0
+        self.run = True
+        win = False
+        pygame.mixer.music.pause()
+        # self.load_music('Game_Over.mp3')
+        # pygame.mixer.music.play()
+        intro_text = ["Вы прошли все уровни", "", f"Вы набрали в сумме {coins} монет", "",
+                      f"Вы потрали в сумме {attempt} попыток"] #данные будут браться из таблица
+        coins = 0
+        attempt = 0
+        fon = pygame.transform.scale(self.load_image('win.jpg'), (self.width, self.height))
+        self.screen.blit(fon, (0, 0))
+        font = pygame.font.Font(None, 30)
+        text_coord = 50
+        for line in intro_text:
+            string_rendered = font.render(line, 0, pygame.Color('white'))
+            intro_rect = string_rendered.get_rect()
+            text_coord += 10
+            intro_rect.top = text_coord
+            intro_rect.x = self.width / 2 - len(line) * 6
+            text_coord += intro_rect.height
+            self.screen.blit(string_rendered, intro_rect)
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.terminate()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if 200 <= mouse[0] <= 550 and 440 <= mouse[1] <= 500:
+                        app.start_screen()
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_3:
+                        pygame.mixer.music.pause()
+                    elif event.key == pygame.K_2:
+                        pygame.mixer.music.unpause()
+                        pygame.mixer.music.set_volume(0.5)
+                    pygame.time.delay(20)
+            mouse = pygame.mouse.get_pos()
+            pygame.draw.rect(self.screen, (128, 255, 0), [200, 440, 350, 60])
+            string_rendered = font.render("Вернуться на стартовую страницу", 1, pygame.Color('white'))
+            self.screen.blit(string_rendered, (205, 460))
+            pygame.display.flip()
+            self.clock.tick(self.fps)
 
 
 if __name__ == '__main__':
