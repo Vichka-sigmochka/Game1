@@ -5,7 +5,6 @@ from pygame.draw import rect
 import sqlite3
 from pygame.math import Vector2
 
-
 jump_start_time = 0
 GRAVITY = Vector2(0, 0.86)
 coins = 0
@@ -153,7 +152,6 @@ class App:
             image = image.convert_alpha()
         return image
 
-
     def load_music(self, name):
         fullname = os.path.join('data', name)
         if not os.path.isfile(fullname):
@@ -187,20 +185,24 @@ class App:
         max_width = max(map(len, level_map))
         return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
-    def run_game(self, map):
+    def run_game(self, map, n=0):
+        global coins
+        coins = 0
         icon = self.load_image("player.jpg")
         pygame.display.set_icon(icon)
         self.run = True
         self.hero = self.generate_level(self.load_level('map.txt'))
+        if n == 1:
+            pygame.mixer.music.pause()
         self.load_music('music1.mp3')
         pygame.mixer.music.play()
         while self.run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_1:  # измениться при реализации столкновений
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_1:
                     self.end_screen()
-                    run = False
+                    self.run = False
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_3:
                         pygame.mixer.music.pause()
@@ -255,14 +257,14 @@ class App:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[
                         1] <= self.height / 2 + 20:
-                        self.con = sqlite3.connect("result1.sqlite")
-                        cur = self.con.cursor()
-                        sqlite_insert_with_param = """INSERT INTO result (name, score)
-                                                                              VALUES (?, ?);"""
-                        data_tuple = (self.text, 0)
-                        cur.execute(sqlite_insert_with_param, data_tuple)
-                        self.con.commit()
-                        self.con.close()
+                        # self.con = sqlite3.connect("result1.sqlite")
+                        # cur = self.con.cursor()
+                        # sqlite_insert_with_param = """INSERT INTO result (name, score)
+                        #                                                     VALUES (?, ?);"""
+                        # data_tuple = (self.text, 0)
+                        # cur.execute(sqlite_insert_with_param, data_tuple)
+                        # self.con.commit()
+                        # self.con.close()
                         app.run_game('map.txt')
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 - 10 and self.height / 2 - 100 <= mouse[
                         1] <= self.height / 2 - 40:
@@ -339,6 +341,9 @@ class App:
 
     def end_screen(self):
         global died
+        pygame.mixer.music.pause()
+        self.load_music('Game_Over.mp3')
+        pygame.mixer.music.play()
         fon = pygame.transform.scale(self.load_image('gameover.jpg'), (self.width, self.height))
         self.screen.blit(fon, (0, 0))
         print(coins)
@@ -346,11 +351,23 @@ class App:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_3:
+                        pygame.mixer.music.pause()
+                    elif event.key == pygame.K_2:
+                        pygame.mixer.music.unpause()
+                        pygame.mixer.music.set_volume(0.5)
+                    pygame.time.delay(20)
             keys = pygame.key.get_pressed()
             if keys[pygame.K_SPACE]:
-                print(1)
                 died = False
-                app.run_game('map.txt')
+                self.hero = None
+                self.angle = 0
+                self.all_sprites = pygame.sprite.Group()
+                self.elements = pygame.sprite.Group()
+                self.Camera = 0
+                self.run = True
+                app.run_game('map.txt', 1)
             pygame.display.flip()
             self.clock.tick(self.fps)
 
