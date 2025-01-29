@@ -128,6 +128,7 @@ class App:
         self.elements = pygame.sprite.Group()
         self.fps = 50
         self.Camera = 0
+        self.run = True
 
     def terminate(self):
         pygame.quit()
@@ -162,7 +163,7 @@ class App:
                 if level[i][j] == '!':
                     Triangle(self.load_image('triangle.png'), (x, y), self.elements)
                 if level[i][j] == 'C':
-                    Coin(self.load_image('money.jpg'), (x, y), self.elements)
+                    Coin(self.load_image('money.png'), (x, y), self.elements)
                 if level[i][j] == '@':
                     End(self.load_image('end.jpg'), (x, y), self.elements)
                 x += 35
@@ -181,15 +182,12 @@ class App:
     def run_game(self, map):
         icon = self.load_image("player.jpg")
         pygame.display.set_icon(icon)
-        run = True
+        self.run = True
         self.hero = self.generate_level(self.load_level('map.txt'))
-        while run:
+        while self.run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_1:  # измениться при реализации столкновений
-                    self.end_screen()
-                    run = False
             keys = pygame.key.get_pressed()
             self.hero.vel.x = 5  # скорость
             if keys[pygame.K_SPACE] or keys[pygame.K_UP]:
@@ -205,7 +203,7 @@ class App:
                 self.all_sprites.draw(self.screen)
             self.elements.draw(self.screen)
             pygame.display.flip()
-            self.clock.tick(50)
+            self.clock.tick(60)
 
     def start_screen(self):
         intro_text = [" ГеометрияДэш", "",
@@ -322,10 +320,16 @@ class App:
     def end_screen(self):
         fon = pygame.transform.scale(self.load_image('gameover.jpg'), (self.width, self.height))
         self.screen.blit(fon, (0, 0))
+        print(coins)
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_SPACE]:
+                print(1)
+                self.run = True
+                app.run_game('map.txt')
             pygame.display.flip()
             self.clock.tick(self.fps)
 
