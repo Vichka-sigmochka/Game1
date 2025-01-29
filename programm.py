@@ -147,7 +147,6 @@ class App:
         self.run = True
         self.coins = []
 
-
     def terminate(self):
         pygame.quit()
         sys.exit()
