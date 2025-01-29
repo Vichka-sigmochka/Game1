@@ -234,6 +234,7 @@ class App:
         self.screen.blit(fon, (0, 0))
         self.click1 = True
         self.click2 = False
+        self.click3 = False
         self.start = False
         font = pygame.font.Font(None, 30)
         text_coord = 50
@@ -245,9 +246,16 @@ class App:
             intro_rect.x = self.width / 2 - 85
             text_coord += intro_rect.height
             self.screen.blit(string_rendered, intro_rect)
-        self.base_font = pygame.font.Font(None, 40)
+        string_rendered = font.render('Введите никнейм пользователя:', 0, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord = 350
+        intro_rect.top = text_coord
+        intro_rect.x = 70
+        text_coord += intro_rect.height
+        self.screen.blit(string_rendered, intro_rect)
+        self.base_font = pygame.font.Font(None, 35)
         self.text = ''
-        self.input_rect = pygame.Rect(310, 350, 180, 40)
+        self.input_rect = pygame.Rect(400, 345, 180, 35)
         self.color = pygame.Color((0, 255, 0))
         self.active = False
         while True:
@@ -274,12 +282,17 @@ class App:
                         1] <= self.height / 2 - 40:
                         self.click1 = False
                         self.click2 = True
-                    if self.input_rect.collidepoint(event.pos):
-                        self.active = True
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_BACKSPACE:
-                        self.text = self.text[0:-1]
+                    if 400 <= mouse[0] <= 580 and 345 <= mouse[1] <= 380:
+                        self.click3 = True
                     else:
+                        self.click3 = False
+                    if self.click3:
+                        if self.input_rect.collidepoint(event.pos):
+                            self.active = True
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_BACKSPACE and self.click3:
+                        self.text = self.text[0:-1]
+                    elif self.click3:
                         self.text += event.unicode
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RIGHT]:
@@ -322,6 +335,11 @@ class App:
                 else:
                     pygame.draw.rect(self.screen, (0, 0, 0), [self.width / 2 + 10, self.height / 2 - 100, 60, 60])
                     pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 + 10, self.height / 2 - 100, 60, 60], 5)
+            if not self.click3:
+                if 400 <= mouse[0] <= 580 and 345 <= mouse[1] <= 380:
+                   self.active = True
+                else:
+                   self.active = False
             string_rendered = font.render("Start", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 - 22, self.height / 2 - 7))
             string_rendered = font.render("1", 1, pygame.Color('white'))
@@ -329,13 +347,15 @@ class App:
             string_rendered = font.render("2", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 + 20, self.height / 2 - 90))
             if self.active:
-                self.color = pygame.Color((128, 0, 0))
+                self.color = pygame.Color((128, 255, 0))
             else:
                 self.color = pygame.Color((0, 255, 0))
             pygame.draw.rect(self.screen, self.color, self.input_rect)
+            if len(self.text) > 7:
+                self.text = self.text[0:-1]
             self.text1 = self.base_font.render(self.text, True, (255, 255, 255))
             self.screen.blit(self.text1, (self.input_rect.x + 5, self.input_rect.y + 5))
-            self.input_rect.w = max(180, self.text1.get_width() + 10)
+            self.input_rect.w = 180
             pygame.display.flip()
             self.clock.tick(self.fps)
 
@@ -346,7 +366,6 @@ class App:
         pygame.mixer.music.play()
         fon = pygame.transform.scale(self.load_image('gameover.jpg'), (self.width, self.height))
         self.screen.blit(fon, (0, 0))
-        print(coins)
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
