@@ -273,7 +273,7 @@ class App:
                         self.click1 = False
                         self.click2 = True
                     if self.input_rect.collidepoint(event.pos):
-                        active = True
+                        self.active = True
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
                         self.text = self.text[0:-1]
