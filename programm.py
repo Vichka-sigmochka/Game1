@@ -22,7 +22,7 @@ class Hero(pygame.sprite.Sprite):
         self.image = app.load_image("player.jpg")
         self.rect = self.image.get_rect(center=pos)
         self.app = app
-        self.jump_amount = 11
+        self.jump_amount = 12
         self.vel = Vector2(0, 0)  # скорость
         self.rect = self.image.get_rect(center=pos)
         self.platforms = platforms  # все объекты(блоки, треугольники, монеты)
@@ -242,6 +242,7 @@ class App:
             pygame.mixer.music.pause()
         self.load_music('music1.mp3')
         pygame.mixer.music.play()
+        font = pygame.font.Font(None, 40)
         while self.run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -273,6 +274,8 @@ class App:
             for group in self.coins:
                 group.update()
                 group.draw(self.screen)
+            tries = font.render(f" Attempt {str(attempt)}", True, (255, 255, 255))
+            self.screen.blit(tries, (600, 20))
             pygame.display.flip()
             self.clock.tick(60)
 
