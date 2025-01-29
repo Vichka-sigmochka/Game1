@@ -217,6 +217,8 @@ class App:
 
     def run_game(self, map, n=0):
         global coins
+        fon = pygame.transform.scale(self.load_image('bakeground.jpg'), (self.width, self.height))
+        self.screen.blit(fon, (0, 0))
         coins = 0
         icon = self.load_image("player.jpg")
         pygame.display.set_icon(icon)
@@ -247,7 +249,7 @@ class App:
             self.all_sprites.update()
             self.Camera = self.hero.vel.x
             self.move_map()
-            self.screen.fill(pygame.Color('blue'))
+            self.screen.blit(fon, (0, 0))
             if self.hero.is_jump:
                 self.angle -= 8.1712
                 Spin(self.screen, self.hero.image, self.hero.rect.center, (16, 16), self.angle)
