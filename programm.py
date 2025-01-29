@@ -5,7 +5,6 @@ from pygame.draw import rect
 import sqlite3
 from pygame.math import Vector2
 
-
 jump_start_time = 0
 GRAVITY = Vector2(0, 0.86)
 coins = 0
@@ -153,7 +152,6 @@ class App:
             image = image.convert_alpha()
         return image
 
-
     def load_music(self, name):
         fullname = os.path.join('data', name)
         if not os.path.isfile(fullname):
@@ -187,11 +185,15 @@ class App:
         max_width = max(map(len, level_map))
         return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
-    def run_game(self, map):
+    def run_game(self, map, n=0):
+        global coins
+        coins = 0
         icon = self.load_image("player.jpg")
         pygame.display.set_icon(icon)
         self.run = True
         self.hero = self.generate_level(self.load_level('map.txt'))
+        if n == 1:
+            pygame.mixer.music.pause()
         self.load_music('music1.mp3')
         pygame.mixer.music.play()
         while self.run:
@@ -199,9 +201,9 @@ class App:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_1:  # измениться при реализации столкновений
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_1:
                     self.end_screen()
-                    run = False
+                    self.run = False
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_3:
                         pygame.mixer.music.pause()
@@ -233,6 +235,7 @@ class App:
         self.screen.blit(fon, (0, 0))
         self.click1 = True
         self.click2 = False
+        self.click3 = False
         self.start = False
         font = pygame.font.Font(None, 30)
         text_coord = 50
@@ -244,9 +247,16 @@ class App:
             intro_rect.x = self.width / 2 - 85
             text_coord += intro_rect.height
             self.screen.blit(string_rendered, intro_rect)
-        self.base_font = pygame.font.Font(None, 40)
+        string_rendered = font.render('Введите никнейм пользователя:', 0, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord = 350
+        intro_rect.top = text_coord
+        intro_rect.x = 70
+        text_coord += intro_rect.height
+        self.screen.blit(string_rendered, intro_rect)
+        self.base_font = pygame.font.Font(None, 35)
         self.text = ''
-        self.input_rect = pygame.Rect(310, 350, 180, 40)
+        self.input_rect = pygame.Rect(400, 345, 180, 35)
         self.color = pygame.Color((0, 255, 0))
         self.active = False
         while True:
@@ -256,14 +266,14 @@ class App:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[
                         1] <= self.height / 2 + 20:
-                        self.con = sqlite3.connect("result1.sqlite")
-                        cur = self.con.cursor()
-                        sqlite_insert_with_param = """INSERT INTO result (name, score)
-                                                                              VALUES (?, ?);"""
-                        data_tuple = (self.text, 0)
-                        cur.execute(sqlite_insert_with_param, data_tuple)
-                        self.con.commit()
-                        self.con.close()
+                        # self.con = sqlite3.connect("result1.sqlite")
+                        # cur = self.con.cursor()
+                        # sqlite_insert_with_param = """INSERT INTO result (name, score)
+                        #                                                     VALUES (?, ?);"""
+                        # data_tuple = (self.text, 0)
+                        # cur.execute(sqlite_insert_with_param, data_tuple)
+                        # self.con.commit()
+                        # self.con.close()
                         app.run_game('map.txt')
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 - 10 and self.height / 2 - 100 <= mouse[
                         1] <= self.height / 2 - 40:
@@ -273,12 +283,17 @@ class App:
                         1] <= self.height / 2 - 40:
                         self.click1 = False
                         self.click2 = True
-                    if self.input_rect.collidepoint(event.pos):
-                        self.active = True
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_BACKSPACE:
-                        self.text = self.text[0:-1]
+                    if 400 <= mouse[0] <= 580 and 345 <= mouse[1] <= 380:
+                        self.click3 = True
                     else:
+                        self.click3 = False
+                    if self.click3:
+                        if self.input_rect.collidepoint(event.pos):
+                            self.active = True
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_BACKSPACE and self.click3:
+                        self.text = self.text[0:-1]
+                    elif self.click3:
                         self.text += event.unicode
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RIGHT]:
@@ -321,6 +336,11 @@ class App:
                 else:
                     pygame.draw.rect(self.screen, (0, 0, 0), [self.width / 2 + 10, self.height / 2 - 100, 60, 60])
                     pygame.draw.rect(self.screen, (0, 255, 0), [self.width / 2 + 10, self.height / 2 - 100, 60, 60], 5)
+            if not self.click3:
+                if 400 <= mouse[0] <= 580 and 345 <= mouse[1] <= 380:
+                   self.active = True
+                else:
+                   self.active = False
             string_rendered = font.render("Start", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 - 22, self.height / 2 - 7))
             string_rendered = font.render("1", 1, pygame.Color('white'))
@@ -328,30 +348,46 @@ class App:
             string_rendered = font.render("2", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 + 20, self.height / 2 - 90))
             if self.active:
-                self.color = pygame.Color((128, 0, 0))
+                self.color = pygame.Color((128, 255, 0))
             else:
                 self.color = pygame.Color((0, 255, 0))
             pygame.draw.rect(self.screen, self.color, self.input_rect)
+            if len(self.text) > 7:
+                self.text = self.text[0:-1]
             self.text1 = self.base_font.render(self.text, True, (255, 255, 255))
             self.screen.blit(self.text1, (self.input_rect.x + 5, self.input_rect.y + 5))
-            self.input_rect.w = max(180, self.text1.get_width() + 10)
+            self.input_rect.w = 180
             pygame.display.flip()
             self.clock.tick(self.fps)
 
     def end_screen(self):
         global died
+        pygame.mixer.music.pause()
+        self.load_music('Game_Over.mp3')
+        pygame.mixer.music.play()
         fon = pygame.transform.scale(self.load_image('gameover.jpg'), (self.width, self.height))
         self.screen.blit(fon, (0, 0))
-        print(coins)
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_3:
+                        pygame.mixer.music.pause()
+                    elif event.key == pygame.K_2:
+                        pygame.mixer.music.unpause()
+                        pygame.mixer.music.set_volume(0.5)
+                    pygame.time.delay(20)
             keys = pygame.key.get_pressed()
             if keys[pygame.K_SPACE]:
-                print(1)
                 died = False
-                app.run_game('map.txt')
+                self.hero = None
+                self.angle = 0
+                self.all_sprites = pygame.sprite.Group()
+                self.elements = pygame.sprite.Group()
+                self.Camera = 0
+                self.run = True
+                app.run_game('map.txt', 1)
             pygame.display.flip()
             self.clock.tick(self.fps)
 
