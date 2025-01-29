@@ -9,6 +9,8 @@ from pygame.math import Vector2
 jump_start_time = 0
 GRAVITY = Vector2(0, 0.86)
 coins = 0
+died = False  # умер или нет
+win = False  # выиграл или нет
 
 
 class Hero(pygame.sprite.Sprite):
@@ -23,11 +25,9 @@ class Hero(pygame.sprite.Sprite):
         self.platforms = platforms  # все объекты(блоки, треугольники, монеты)
         self.is_jump = False  # прыгал или нет
         self.on_ground = False  # находится на земле или нет
-        self.died = False  # умер или нет
-        self.win = False  # выиграл или нет
 
     def collide(self, yvel, platforms):  # столкновения
-        global coins
+        global coins, died, win
         for p in platforms:
             if pygame.sprite.collide_rect(self, p):
                 if isinstance(p, Block):
@@ -41,15 +41,15 @@ class Hero(pygame.sprite.Sprite):
                     else:
                         self.vel.x = 0
                         self.rect.right = p.rect.left
-                        self.died = True
+                        died = True
                 if isinstance(p, Triangle):
-                    self.died = True
+                    died = True
                 if isinstance(p, Coin):
                     coins += 1
                     p.rect.x = 0
                     p.rect.y = 0
                 if isinstance(p, End):
-                    self.win = True
+                    win = True
 
     def update(self):
         if self.is_jump:
@@ -63,7 +63,7 @@ class Hero(pygame.sprite.Sprite):
         self.rect.top = self.rect.top + self.vel.y
         self.on_ground = False
         self.collide(self.vel.y, self.platforms)
-        died_or_won(self.win, self.died)
+        died_or_won(win, died)
 
 
 class Draw(pygame.sprite.Sprite):
@@ -318,6 +318,7 @@ class App:
             self.clock.tick(self.fps)
 
     def end_screen(self):
+        global died
         fon = pygame.transform.scale(self.load_image('gameover.jpg'), (self.width, self.height))
         self.screen.blit(fon, (0, 0))
         print(coins)
@@ -328,7 +329,7 @@ class App:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_SPACE]:
                 print(1)
-                self.run = True
+                died = False
                 app.run_game('map.txt')
             pygame.display.flip()
             self.clock.tick(self.fps)
