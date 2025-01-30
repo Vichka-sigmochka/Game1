@@ -22,7 +22,7 @@ class Hero(pygame.sprite.Sprite):
         self.image = app.load_image("player.jpg")
         self.rect = self.image.get_rect(center=pos)
         self.app = app
-        self.jump_amount = 11
+        self.jump_amount = 12
         self.vel = Vector2(0, 0)  # скорость
         self.rect = self.image.get_rect(center=pos)
         self.platforms = platforms  # все объекты(блоки, треугольники, монеты)
@@ -49,8 +49,8 @@ class Hero(pygame.sprite.Sprite):
                     died = True
                 if isinstance(p, AnimatedSprite):
                     coins += 1
-                    p.rect.x = 0
-                    p.rect.y = 0
+                    p.rect.x = -100
+                    p.rect.y = -100
                 if isinstance(p, End):
                     win = True
                 keys = pygame.key.get_pressed()
@@ -243,6 +243,7 @@ class App:
             pygame.mixer.music.pause()
         self.load_music('music1.mp3')
         pygame.mixer.music.play()
+        font = pygame.font.Font(None, 40)
         while self.run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -274,6 +275,10 @@ class App:
             for group in self.coins:
                 group.update()
                 group.draw(self.screen)
+            tries = font.render(f" Attempt {str(attempt)}", True, (255, 255, 255))
+            for i in range(1, coins + 1):
+                self.screen.blit(self.load_image('coin.png'), (735 - i * 35, 50))
+            self.screen.blit(tries, (600, 20))
             pygame.display.flip()
             self.clock.tick(60)
 
@@ -289,6 +294,7 @@ class App:
         self.start = False
         font = pygame.font.Font(None, 30)
         text_coord = 50
+        #player = Hero(self, self.load_image('player.jpg'), (0, 550), self.elements, self.all_sprites)
         for line in intro_text:
             string_rendered = font.render(line, 0, pygame.Color('black'))
             intro_rect = string_rendered.get_rect()
@@ -398,6 +404,7 @@ class App:
                    self.active = True
                 else:
                    self.active = False
+            pygame.draw.line(self.screen, (0, 255, 0), [0, 550], [800, 550], 10)
             string_rendered = font.render("Start", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 - 22, self.height / 2 - 7))
             string_rendered = font.render("1", 1, pygame.Color('white'))
