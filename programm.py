@@ -250,8 +250,10 @@ class App:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                    self.pause = not (self.pause)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse = pygame.mouse.get_pos()
+                    if 0 <= mouse[0] <= 50 and 0 <= mouse[1] <= 50:
+                        self.pause = not (self.pause)
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_1:
                     self.end_screen()
                     self.run = False
@@ -264,9 +266,11 @@ class App:
                     pygame.time.delay(20)
             keys = pygame.key.get_pressed()
             if self.pause:
-                fon1 = pygame.transform.scale(self.load_image('img.png'), (self.width, self.height))
-                self.screen.blit(fon1, (0, 0))
+                self.screen.blit(self.load_image('start.png'), (0, 0))
+                pygame.mixer.music.pause()
             else:
+                pygame.mixer.music.unpause()
+                pygame.mixer.music.set_volume(0.5)
                 self.hero.vel.x = 5  # скорость
                 if keys[pygame.K_SPACE] or keys[pygame.K_UP]:
                     self.hero.is_jump = True
@@ -287,11 +291,13 @@ class App:
                 for i in range(1, coins + 1):
                     self.screen.blit(self.load_image('coin.png'), (735 - i * 35, 50))
                 self.screen.blit(tries, (600, 20))
+                self.screen.blit(self.load_image('pause.jpg'), (0, 0))
             pygame.display.flip()
             self.clock.tick(60)
 
     def start_screen(self):
         global level, text, levels
+        pygame.mixer.music.pause()
         intro_text = [" ГеометрияДэш", "",
                       "Выбери уровень"]
         fon = pygame.transform.scale(self.load_image('screen.jpg'), (self.width, self.height))
@@ -462,12 +468,12 @@ class App:
                     self.active = True
                 else:
                     self.active = False
-            pygame.draw.line(self.screen, (0, 0, 0), [0, 550], [800, 550], 30)
-            pygame.draw.line(self.screen, (0, 255, 0), [0, 550], [800, 550], 10)
-            if pos_rect > 800 or pos_rect < 0:
+            pygame.draw.line(self.screen, (0, 0, 0), [0, 590], [800, 590], 50)
+            pygame.draw.line(self.screen, (0, 255, 0), [0, 590], [800, 590], 10)
+            if pos_rect > 780 or pos_rect < 0:
                 speed_x = - speed_x
             pos_rect = pos_rect - speed_x
-            pygame.draw.circle(self.screen, (255, 255, 255), [pos_rect, 546], 6)
+            self.screen.blit(self.load_image('player_fon.jpg'), (pos_rect,566))
             string_rendered = font.render("Start", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 - 22, self.height / 2 - 7))
             string_rendered = font.render("1", 1, pygame.Color('white'))
