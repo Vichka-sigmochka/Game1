@@ -322,6 +322,8 @@ class App:
         self.input_rect = pygame.Rect(400, 345, 180, 35)
         self.color = pygame.Color((0, 255, 0))
         self.active = False
+        pos_rect = 0
+        speed_x = 3
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -461,6 +463,10 @@ class App:
                 else:
                     self.active = False
             pygame.draw.line(self.screen, (0, 255, 0), [0, 550], [800, 550], 10)
+            if pos_rect > 800 or pos_rect < 0:
+                speed_x = - speed_x
+            pos_rect = pos_rect - speed_x
+            #pygame.draw.circle(self.screen, (255, 255, 255), [pos_rect, 546], 6)
             string_rendered = font.render("Start", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 - 22, self.height / 2 - 7))
             string_rendered = font.render("1", 1, pygame.Color('white'))
@@ -644,6 +650,7 @@ class App:
                     self.terminate()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if 200 <= mouse[0] <= 550 and 440 <= mouse[1] <= 500:
+                        pygame.mixer.music.pause()
                         app.start_screen()
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_3:
