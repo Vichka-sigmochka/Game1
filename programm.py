@@ -364,7 +364,7 @@ class App:
                                 cur.execute(sqlite_insert_with_param, data_tuple)
                                 self.con.commit()
                                 self.con.close()
-                        if self.click1 :
+                        if self.click1:
                             level = 1
                             app.run_game('map1.txt')
                         else:
@@ -473,7 +473,7 @@ class App:
             if pos_rect > 780 or pos_rect < 0:
                 speed_x = - speed_x
             pos_rect = pos_rect - speed_x
-            self.screen.blit(self.load_image('player_fon.jpg'), (pos_rect,566))
+            self.screen.blit(self.load_image('player_fon.jpg'), (pos_rect, 566))
             string_rendered = font.render("Start", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 - 22, self.height / 2 - 7))
             string_rendered = font.render("1", 1, pygame.Color('white'))
