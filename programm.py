@@ -291,7 +291,7 @@ class App:
             self.clock.tick(60)
 
     def start_screen(self):
-        global level, text
+        global level, text, levels
         intro_text = [" ГеометрияДэш", "",
                       "Выбери уровень"]
         fon = pygame.transform.scale(self.load_image('screen.jpg'), (self.width, self.height))
@@ -322,6 +322,8 @@ class App:
         self.input_rect = pygame.Rect(400, 345, 180, 35)
         self.color = pygame.Color((0, 255, 0))
         self.active = False
+        pos_rect = 0
+        speed_x = 3
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -329,15 +331,34 @@ class App:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[
                         1] <= self.height / 2 + 20:
-                        self.con = sqlite3.connect("result.sqlite")
-                        cur = self.con.cursor()
-                        sqlite_insert_with_param = """INSERT INTO result (name, score1, poputki1, score2, poputki2)
-                                                                    VALUES(?, ?, ?, ?, ?);"""
-                        data_tuple = (text, 0, 0, 0, 0)
-                        cur.execute(sqlite_insert_with_param, data_tuple)
-                        self.con.commit()
-                        self.con.close()
-                        if self.click1:
+                        if levels == []:
+                            try:
+                                self.con = sqlite3.connect("result.sqlite")
+                                cur = self.con.cursor()
+                                sqlite_insert_with_param = """INSERT INTO result (name, score1, poputki1, score2, poputki2)
+                                                                            VALUES(?, ?, ?, ?, ?);"""
+                                data_tuple = (text, 0, 0, 0, 0)
+                                cur.execute(sqlite_insert_with_param, data_tuple)
+                                self.con.commit()
+                                self.con.close()
+                            except:
+                                self.con = sqlite3.connect("result.sqlite")
+                                cur = self.con.cursor()
+                                sqlite_insert_with_param = """UPDATE result SET  score1 = ? WHERE name = ?"""
+                                data_tuple = (0, text)
+                                cur.execute(sqlite_insert_with_param, data_tuple)
+                                sqlite_insert_with_param = """UPDATE result SET  poputki1 = ? WHERE name = ?"""
+                                data_tuple = (0, text)
+                                cur.execute(sqlite_insert_with_param, data_tuple)
+                                sqlite_insert_with_param = """UPDATE result SET  score2 = ? WHERE name = ?"""
+                                data_tuple = (0, text)
+                                cur.execute(sqlite_insert_with_param, data_tuple)
+                                sqlite_insert_with_param = """UPDATE result SET  poputki2 = ? WHERE name = ?"""
+                                data_tuple = (0, text)
+                                cur.execute(sqlite_insert_with_param, data_tuple)
+                                self.con.commit()
+                                self.con.close()
+                        if self.click1 :
                             level = 1
                             app.run_game('map1.txt')
                         else:
@@ -373,9 +394,38 @@ class App:
             if keys[pygame.K_DOWN]:
                 self.start = True
             if keys[pygame.K_SPACE] and self.start:
+                if levels == []:
+                    try:
+                        self.con = sqlite3.connect("result.sqlite")
+                        cur = self.con.cursor()
+                        sqlite_insert_with_param = """INSERT INTO result (name, score1, poputki1, score2, poputki2)
+                                                                    VALUES(?, ?, ?, ?, ?);"""
+                        data_tuple = (text, 0, 0, 0, 0)
+                        cur.execute(sqlite_insert_with_param, data_tuple)
+                        self.con.commit()
+                        self.con.close()
+                    except:
+                        self.con = sqlite3.connect("result.sqlite")
+                        cur = self.con.cursor()
+                        sqlite_insert_with_param = """UPDATE result SET  score1 = ? WHERE name = ?"""
+                        data_tuple = (0, text)
+                        cur.execute(sqlite_insert_with_param, data_tuple)
+                        sqlite_insert_with_param = """UPDATE result SET  poputki1 = ? WHERE name = ?"""
+                        data_tuple = (0, text)
+                        cur.execute(sqlite_insert_with_param, data_tuple)
+                        sqlite_insert_with_param = """UPDATE result SET  score2 = ? WHERE name = ?"""
+                        data_tuple = (0, text)
+                        cur.execute(sqlite_insert_with_param, data_tuple)
+                        sqlite_insert_with_param = """UPDATE result SET  poputki2 = ? WHERE name = ?"""
+                        data_tuple = (0, text)
+                        cur.execute(sqlite_insert_with_param, data_tuple)
+                        self.con.commit()
+                        self.con.close()
                 if self.click1:
+                    level = 1
                     app.run_game('map1.txt')
                 else:
+                    level = 2
                     app.run_game('map.txt')
             mouse = pygame.mouse.get_pos()
             if self.start or self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[
@@ -413,6 +463,10 @@ class App:
                 else:
                     self.active = False
             pygame.draw.line(self.screen, (0, 255, 0), [0, 550], [800, 550], 10)
+            if pos_rect > 800 or pos_rect < 0:
+                speed_x = - speed_x
+            pos_rect = pos_rect - speed_x
+            #pygame.draw.circle(self.screen, (255, 255, 255), [pos_rect, 546], 6)
             string_rendered = font.render("Start", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 - 22, self.height / 2 - 7))
             string_rendered = font.render("1", 1, pygame.Color('white'))
@@ -596,6 +650,7 @@ class App:
                     self.terminate()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if 200 <= mouse[0] <= 550 and 440 <= mouse[1] <= 500:
+                        pygame.mixer.music.pause()
                         app.start_screen()
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_3:
