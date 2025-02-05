@@ -331,33 +331,33 @@ class App:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[
                         1] <= self.height / 2 + 20:
-                        if levels == []:
-                            try:
-                                self.con = sqlite3.connect("result.sqlite")
-                                cur = self.con.cursor()
-                                sqlite_insert_with_param = """INSERT INTO result (name, score1, poputki1, score2, poputki2)
-                                                                            VALUES(?, ?, ?, ?, ?);"""
-                                data_tuple = (text, 0, 0, 0, 0)
-                                cur.execute(sqlite_insert_with_param, data_tuple)
-                                self.con.commit()
-                                self.con.close()
-                            except:
-                                self.con = sqlite3.connect("result.sqlite")
-                                cur = self.con.cursor()
-                                sqlite_insert_with_param = """UPDATE result SET  score1 = ? WHERE name = ?"""
-                                data_tuple = (0, text)
-                                cur.execute(sqlite_insert_with_param, data_tuple)
-                                sqlite_insert_with_param = """UPDATE result SET  poputki1 = ? WHERE name = ?"""
-                                data_tuple = (0, text)
-                                cur.execute(sqlite_insert_with_param, data_tuple)
-                                sqlite_insert_with_param = """UPDATE result SET  score2 = ? WHERE name = ?"""
-                                data_tuple = (0, text)
-                                cur.execute(sqlite_insert_with_param, data_tuple)
-                                sqlite_insert_with_param = """UPDATE result SET  poputki2 = ? WHERE name = ?"""
-                                data_tuple = (0, text)
-                                cur.execute(sqlite_insert_with_param, data_tuple)
-                                self.con.commit()
-                                self.con.close()
+                        # if levels == []:
+                        #     try:
+                        #         self.con = sqlite3.connect("result.sqlite")
+                        #         cur = self.con.cursor()
+                        #         sqlite_insert_with_param = """INSERT INTO result (name, score1, poputki1, score2, poputki2)
+                        #                                                     VALUES(?, ?, ?, ?, ?);"""
+                        #         data_tuple = (text, 0, 0, 0, 0)
+                        #         cur.execute(sqlite_insert_with_param, data_tuple)
+                        #         self.con.commit()
+                        #         self.con.close()
+                        #     except:
+                        #         self.con = sqlite3.connect("result.sqlite")
+                        #         cur = self.con.cursor()
+                        #         sqlite_insert_with_param = """UPDATE result SET  score1 = ? WHERE name = ?"""
+                        #         data_tuple = (0, text)
+                        #         cur.execute(sqlite_insert_with_param, data_tuple)
+                        #         sqlite_insert_with_param = """UPDATE result SET  poputki1 = ? WHERE name = ?"""
+                        #         data_tuple = (0, text)
+                        #         cur.execute(sqlite_insert_with_param, data_tuple)
+                        #         sqlite_insert_with_param = """UPDATE result SET  score2 = ? WHERE name = ?"""
+                        #         data_tuple = (0, text)
+                        #         cur.execute(sqlite_insert_with_param, data_tuple)
+                        #         sqlite_insert_with_param = """UPDATE result SET  poputki2 = ? WHERE name = ?"""
+                        #         data_tuple = (0, text)
+                        #         cur.execute(sqlite_insert_with_param, data_tuple)
+                        #         self.con.commit()
+                        #         self.con.close()
                         if self.click1 :
                             level = 1
                             app.run_game('map1.txt')
