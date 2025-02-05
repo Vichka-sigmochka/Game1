@@ -363,7 +363,7 @@ class App:
                             app.run_game('map1.txt')
                         else:
                             level = 2
-                            app.run_game('map.txt')
+                            app.run_game('map2.txt')
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 - 10 and self.height / 2 - 100 <= mouse[
                         1] <= self.height / 2 - 40:
                         self.click1 = True
@@ -423,10 +423,10 @@ class App:
                         self.con.close()
                 if self.click1:
                     level = 1
-                    app.run_game('map1.txt')
+                    app.run_game('map2.txt')
                 else:
                     level = 2
-                    app.run_game('map.txt')
+                    app.run_game('map1.txt')
             mouse = pygame.mouse.get_pos()
             if self.start or self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[
                 1] <= self.height / 2 + 20:
@@ -541,7 +541,7 @@ class App:
                 if level == 1:
                     app.run_game('map1.txt', 1)
                 else:
-                    app.run_game('map.txt', 1)
+                    app.run_game('map2.txt', 1)
             pygame.display.flip()
             self.clock.tick(self.fps)
 
@@ -555,6 +555,8 @@ class App:
         self.Camera = 0
         self.run = True
         win = False
+        click1 = True
+        click2 = False
         pygame.mixer.music.pause()
         self.load_music('win.mp3')
         pygame.mixer.music.play()
@@ -584,7 +586,7 @@ class App:
                     if 480 <= mouse[0] <= 730 and 440 <= mouse[1] <= 500:
                         if levels[0] == 1:
                             level = 2
-                            app.run_game('map.txt', 1)
+                            app.run_game('map2.txt', 1)
                         else:
                             level = 1
                             app.run_game('map1.txt', 1)
@@ -597,11 +599,39 @@ class App:
                     pygame.time.delay(20)
             mouse = pygame.mouse.get_pos()
             pygame.draw.rect(self.screen, (128, 255, 0), [60, 440, 350, 60])
-            if 480 <= mouse[0] <= 730 and 440 <= mouse[1] <= 500:
-                pygame.draw.rect(self.screen, (128, 255, 0), [480, 440, 250, 60])
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_RIGHT]:
+                click1 = False
+                click2 = True
+            if keys[pygame.K_LEFT]:
+                click1 = True
+                click2 = False
+            if 60 <= mouse[0] <= 410 and 440 <= mouse[1] <= 500:
+                pygame.draw.rect(self.screen, (128, 255, 0), [60, 440, 350, 60])
             else:
-                pygame.draw.rect(self.screen, (0, 0, 0), [480, 440, 250, 60])
-                pygame.draw.rect(self.screen, (0, 255, 0), [480, 440, 250, 60], 5)
+                pygame.draw.rect(self.screen, (0, 255, 0), [60, 440, 350, 60])
+            if 60 <= mouse[0] <= 410 and 440 <= mouse[1] <= 500:
+                if click1:
+                    pygame.draw.rect(self.screen, (0, 255, 0), [60, 440, 350, 60])
+                else:
+                    pygame.draw.rect(self.screen, (128, 255, 0), [60, 440, 350, 60])
+            else:
+                if click1:
+                    pygame.draw.rect(self.screen, (0, 255, 0), [60, 440, 350, 60])
+                else:
+                    pygame.draw.rect(self.screen, (0, 0, 0), [60, 440, 350, 60])
+                    pygame.draw.rect(self.screen, (0, 255, 0), [60, 440, 350, 60], 5)
+            if 480 <= mouse[0] <= 730 and 440 <= mouse[1] <= 500:
+                if click2:
+                    pygame.draw.rect(self.screen, (0, 255, 0), [480, 440, 250, 60])
+                else:
+                    pygame.draw.rect(self.screen, (128, 255, 0), [480, 440, 250, 60])
+            else:
+                if click2:
+                    pygame.draw.rect(self.screen, (0, 255, 0), [480, 440, 250, 60])
+                else:
+                    pygame.draw.rect(self.screen, (0, 0, 0), [480, 440, 250, 60])
+                    pygame.draw.rect(self.screen, (0, 255, 0), [480, 440, 250, 60], 5)
             string_rendered = font.render("Вернуться на стартовую страницу", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (65, 460))
             string_rendered = font.render(f"Пройти уровень {3 - levels[0]}", 1, pygame.Color('white'))
