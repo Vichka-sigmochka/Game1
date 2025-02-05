@@ -462,11 +462,12 @@ class App:
                     self.active = True
                 else:
                     self.active = False
+            pygame.draw.line(self.screen, (0, 0, 0), [0, 550], [800, 550], 30)
             pygame.draw.line(self.screen, (0, 255, 0), [0, 550], [800, 550], 10)
             if pos_rect > 800 or pos_rect < 0:
                 speed_x = - speed_x
             pos_rect = pos_rect - speed_x
-            #pygame.draw.circle(self.screen, (255, 255, 255), [pos_rect, 546], 6)
+            pygame.draw.circle(self.screen, (255, 255, 255), [pos_rect, 546], 6)
             string_rendered = font.render("Start", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 - 22, self.height / 2 - 7))
             string_rendered = font.render("1", 1, pygame.Color('white'))
