@@ -239,7 +239,7 @@ class App:
                 if level[i][j] == 'G':
                     Gif(self.load_image('sphere.png'), (x, y), self.elements)
                 if level[i][j] == 'C':
-                    coin = AnimatedSprite1(self, self.load_image("gold.png"), 8, 1, x, y)
+                    coin = AnimatedSprite(self, self.load_image("gold.png"), 8, 1, x, y)
                     self.coins.append(pygame.sprite.Group(coin))
                 if level[i][j] == 'F':
                     fire = AnimatedSprite1(self, self.load_image("fire.png"), 10, 6, x, y)
