@@ -50,6 +50,8 @@ class Hero(pygame.sprite.Sprite):
                         died = True
                 if isinstance(p, Triangle):
                     died = True
+                if isinstance(p, AnimatedSprite1):
+                    died = True
                 if isinstance(p, AnimatedSprite):
                     coins += 1
                     p.rect.x = -100
@@ -127,6 +129,29 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.image = self.frames[self.cur_frame]
 
 
+class AnimatedSprite1(pygame.sprite.Sprite):
+    def __init__(self, app, sheet, columns, rows, x, y):
+        super().__init__(app.elements)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
+
+
 def Spin(surf, image, pos, item, angle):
     width, height = image.get_size()
     box = [Vector2(0, 0), Vector2(width, 0), Vector2(width, -height), Vector2(0, -height)]
@@ -172,6 +197,7 @@ class App:
         self.Camera = 0
         self.run = True
         self.coins = []
+        self.fire = []
         self.pause = False
 
     def terminate(self):
@@ -219,6 +245,9 @@ class App:
                 if level[i][j] == 'C':
                     coin = AnimatedSprite(self, self.load_image("gold.png"), 8, 1, x, y)
                     self.coins.append(pygame.sprite.Group(coin))
+                if level[i][j] == 'F':
+                    fire = AnimatedSprite1(self, self.load_image("fire.png"), 10, 6, x, y)
+                    self.fire.append(pygame.sprite.Group(fire))
                 if level[i][j] == '@':
                     End(self.load_image('end.jpg'), (x, y), self.elements)
                 x += 35
@@ -289,6 +318,9 @@ class App:
                     self.all_sprites.draw(self.screen)
                 self.elements.draw(self.screen)
                 for group in self.coins:
+                    group.update()
+                    group.draw(self.screen)
+                for group in self.fire:
                     group.update()
                     group.draw(self.screen)
                 tries = font.render(f" Attempt {str(attempt)}", True, (255, 255, 255))
@@ -452,10 +484,10 @@ class App:
                         self.con.close()
                 if self.click1:
                     level = 1
-                    app.run_game('map2.txt')
+                    app.run_game('map1.txt')
                 else:
                     level = 2
-                    app.run_game('map1.txt')
+                    app.run_game('map2.txt')
             mouse = pygame.mouse.get_pos()
             if self.start or self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[
                 1] <= self.height / 2 + 20:
@@ -568,6 +600,8 @@ class App:
                 self.elements = pygame.sprite.Group()
                 for i in range(len(self.coins)):
                     self.coins[i] = pygame.sprite.Group()
+                for i in range(len(self.fire)):
+                    self.fire[i] = pygame.sprite.Group()
                 self.Camera = 0
                 self.run = True
                 if level == 1:
@@ -622,6 +656,15 @@ class App:
                         else:
                             level = 1
                             app.run_game('map1.txt', 1)
+                if event.type == pygame.KEYUP and event.key == pygame.K_SPACE and click2:
+                    if levels[0] == 1:
+                        level = 2
+                        app.run_game('map2.txt', 1)
+                    else:
+                        level = 1
+                        app.run_game('map1.txt', 1)
+                if event.type == pygame.KEYUP and event.key == pygame.K_SPACE and click1:
+                    app.start_screen()
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_3:
                         pygame.mixer.music.pause()
@@ -715,6 +758,9 @@ class App:
                     if 200 <= mouse[0] <= 550 and 440 <= mouse[1] <= 500:
                         pygame.mixer.music.pause()
                         app.start_screen()
+                elif event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
+                    pygame.mixer.music.pause()
+                    app.start_screen()
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_3:
                         pygame.mixer.music.pause()
