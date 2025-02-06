@@ -16,6 +16,7 @@ text = ''
 levels = []
 player = ['player.jpg', 'player1.jpg', 'player2.jpg']
 vubor = 0
+name = dict()
 
 
 class Hero(pygame.sprite.Sprite):
@@ -180,6 +181,17 @@ def died_or_won(w, d):
         else:
             app.win_screen2()
 
+def result():
+    f = open('result.txt', 'r')
+    s = f.readline().rstrip('\n')
+    while s != '':
+        s = s.split(' ')
+        name[s[0]] = [int(s[1]), int(s[2]), int(s[3]), int(s[4])]
+        s = f.readline().rstrip('\n')
+    f.close()
+    with open('result.txt', 'r+') as f:
+        f.truncate(0)
+
 
 class App:
     def __init__(self):
@@ -201,6 +213,10 @@ class App:
         self.pause = False
 
     def terminate(self):
+        f = open('result.txt', 'w')
+        for i in name:
+            print(i, name[i][0], name[i][1], name[i][2], name[i][3], file=f)
+        f.close()
         pygame.quit()
         sys.exit()
 
@@ -332,7 +348,7 @@ class App:
             self.clock.tick(60)
 
     def start_screen(self):
-        global level, text, levels, vubor, player, coins, attempt
+        global level, text, levels, vubor, player, coins, attempt, name
         pygame.mixer.music.pause()
         intro_text = [" ГеометрияДэш", "",
                       "Выбери уровень"]
@@ -384,33 +400,8 @@ class App:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.width / 2 - 70 <= mouse[0] <= self.width / 2 + 70 and self.height / 2 - 20 <= mouse[
                         1] <= self.height / 2 + 20:
-                        if levels == []:
-                            try:
-                                self.con = sqlite3.connect("result.sqlite")
-                                cur = self.con.cursor()
-                                sqlite_insert_with_param = """INSERT INTO result (name, score1, poputki1, score2, poputki2)
-                                                                            VALUES(?, ?, ?, ?, ?);"""
-                                data_tuple = (text, 0, 0, 0, 0)
-                                cur.execute(sqlite_insert_with_param, data_tuple)
-                                self.con.commit()
-                                self.con.close()
-                            except:
-                                self.con = sqlite3.connect("result.sqlite")
-                                cur = self.con.cursor()
-                                sqlite_insert_with_param = """UPDATE result SET  score1 = ? WHERE name = ?"""
-                                data_tuple = (0, text)
-                                cur.execute(sqlite_insert_with_param, data_tuple)
-                                sqlite_insert_with_param = """UPDATE result SET  poputki1 = ? WHERE name = ?"""
-                                data_tuple = (0, text)
-                                cur.execute(sqlite_insert_with_param, data_tuple)
-                                sqlite_insert_with_param = """UPDATE result SET  score2 = ? WHERE name = ?"""
-                                data_tuple = (0, text)
-                                cur.execute(sqlite_insert_with_param, data_tuple)
-                                sqlite_insert_with_param = """UPDATE result SET  poputki2 = ? WHERE name = ?"""
-                                data_tuple = (0, text)
-                                cur.execute(sqlite_insert_with_param, data_tuple)
-                                self.con.commit()
-                                self.con.close()
+                        if text not in name:
+                            name[text] = [0, 0, 0, 0]
                         if self.click1:
                             level = 1
                             app.run_game('map1.txt')
@@ -455,33 +446,8 @@ class App:
             if keys[pygame.K_DOWN]:
                 self.start = True
             if keys[pygame.K_SPACE] and self.start:
-                if levels == []:
-                    try:
-                        self.con = sqlite3.connect("result.sqlite")
-                        cur = self.con.cursor()
-                        sqlite_insert_with_param = """INSERT INTO result (name, score1, poputki1, score2, poputki2)
-                                                                    VALUES(?, ?, ?, ?, ?);"""
-                        data_tuple = (text, 0, 0, 0, 0)
-                        cur.execute(sqlite_insert_with_param, data_tuple)
-                        self.con.commit()
-                        self.con.close()
-                    except:
-                        self.con = sqlite3.connect("result.sqlite")
-                        cur = self.con.cursor()
-                        sqlite_insert_with_param = """UPDATE result SET  score1 = ? WHERE name = ?"""
-                        data_tuple = (0, text)
-                        cur.execute(sqlite_insert_with_param, data_tuple)
-                        sqlite_insert_with_param = """UPDATE result SET  poputki1 = ? WHERE name = ?"""
-                        data_tuple = (0, text)
-                        cur.execute(sqlite_insert_with_param, data_tuple)
-                        sqlite_insert_with_param = """UPDATE result SET  score2 = ? WHERE name = ?"""
-                        data_tuple = (0, text)
-                        cur.execute(sqlite_insert_with_param, data_tuple)
-                        sqlite_insert_with_param = """UPDATE result SET  poputki2 = ? WHERE name = ?"""
-                        data_tuple = (0, text)
-                        cur.execute(sqlite_insert_with_param, data_tuple)
-                        self.con.commit()
-                        self.con.close()
+                if text not in name:
+                    name[text] = [0, 0, 0, 0]
                 if self.click1:
                     level = 1
                     app.run_game('map1.txt')
@@ -551,39 +517,49 @@ class App:
             pygame.display.flip()
             self.clock.tick(self.fps)
 
-    def update_sqlit(self):
+    def update_dict(self):
         global level, attempt, text, coins
-        self.con = sqlite3.connect("result.sqlite")
-        cur = self.con.cursor()
         if level == 1:
-            sqlite_insert_with_param = """UPDATE result SET  score1 = ? WHERE name = ?"""
-            data_tuple = (coins, text)
-            cur.execute(sqlite_insert_with_param, data_tuple)
-            sqlite_insert_with_param = """UPDATE result SET  poputki1 = ? WHERE name = ?"""
-            data_tuple = (attempt, text)
-            cur.execute(sqlite_insert_with_param, data_tuple)
+            if name[text][0] < coins:
+                name[text][0] = coins
+                name[text][1] = attempt
+            elif name[text][0] == coins:
+                name[text][1] = min(name[text][1], attempt)
         else:
-            sqlite_insert_with_param = """UPDATE result SET  score2 = ? WHERE name = ?"""
-            data_tuple = (coins, text)
-            cur.execute(sqlite_insert_with_param, data_tuple)
-            sqlite_insert_with_param = """UPDATE result SET  poputki2 = ? WHERE name = ?"""
-            data_tuple = (attempt, text)
-            cur.execute(sqlite_insert_with_param, data_tuple)
-        self.con.commit()
-        self.con.close()
+            if name[text][2] < coins:
+                name[text][2] = coins
+                name[text][3] = attempt
+            elif name[text][2] == coins:
+                name[text][3] = min(name[text][3], attempt)
 
     def end_screen(self):
         global died
-        self.update_sqlit()
+        self.update_dict()
         pygame.mixer.music.pause()
         self.load_music('Game_Over.mp3')
         pygame.mixer.music.play()
         fon = pygame.transform.scale(self.load_image('gameover.jpg'), (self.width, self.height))
         self.screen.blit(fon, (0, 0))
+        font = pygame.font.Font(None, 30)
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.terminate()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if 240 <= mouse[0] <= 600 and 490 <= mouse[1] <= 530:
+                        pygame.mixer.music.pause()
+                        died = False
+                        self.hero = None
+                        self.angle = 0
+                        self.all_sprites = pygame.sprite.Group()
+                        self.elements = pygame.sprite.Group()
+                        for i in range(len(self.coins)):
+                            self.coins[i] = pygame.sprite.Group()
+                        for i in range(len(self.fire)):
+                            self.fire[i] = pygame.sprite.Group()
+                        self.Camera = 0
+                        self.run = True
+                        app.start_screen()
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_3:
                         pygame.mixer.music.pause()
@@ -592,6 +568,7 @@ class App:
                         pygame.mixer.music.set_volume(0.5)
                     pygame.time.delay(20)
             keys = pygame.key.get_pressed()
+            mouse = pygame.mouse.get_pos()
             if keys[pygame.K_SPACE]:
                 died = False
                 self.hero = None
@@ -608,12 +585,18 @@ class App:
                     app.run_game('map1.txt', 1)
                 else:
                     app.run_game('map2.txt', 1)
+            if 240 <= mouse[0] <= 600 and 490 <= mouse[1] <= 530:
+                pygame.draw.rect(self.screen, (128, 255, 0), [240, 490, 360, 40])
+            else:
+                pygame.draw.rect(self.screen, (0, 255, 0), [240, 490, 360, 40])
+            string_rendered = font.render("Вернуться на стартовую страницу", 1, pygame.Color('white'))
+            self.screen.blit(string_rendered, (250, 500))
             pygame.display.flip()
             self.clock.tick(self.fps)
 
     def win_screen1(self):
         global coins, attempt, level, win, levels
-        self.update_sqlit()
+        self.update_dict()
         self.hero = None
         self.angle = 0
         self.all_sprites = pygame.sprite.Group()
@@ -648,6 +631,17 @@ class App:
                     self.terminate()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if 60 <= mouse[0] <= 410 and 440 <= mouse[1] <= 500:
+                        died = False
+                        self.hero = None
+                        self.angle = 0
+                        self.all_sprites = pygame.sprite.Group()
+                        self.elements = pygame.sprite.Group()
+                        for i in range(len(self.coins)):
+                            self.coins[i] = pygame.sprite.Group()
+                        for i in range(len(self.fire)):
+                            self.fire[i] = pygame.sprite.Group()
+                        self.Camera = 0
+                        self.run = True
                         app.start_screen()
                     if 480 <= mouse[0] <= 730 and 440 <= mouse[1] <= 500:
                         if levels[0] == 1:
@@ -716,7 +710,7 @@ class App:
 
     def win_screen2(self):
         global coins, attempt, level, win
-        self.update_sqlit()
+        self.update_dict()
         self.hero = None
         self.angle = 0
         self.all_sprites = pygame.sprite.Group()
@@ -727,15 +721,8 @@ class App:
         pygame.mixer.music.pause()
         self.load_music('win.mp3')
         pygame.mixer.music.play()
-        self.con = sqlite3.connect("result.sqlite")
-        cur = self.con.cursor()
-        result = cur.execute('SELECT score1, poputki1, score2, poputki2 FROM result WHERE name = ?',
-                             (text,)).fetchall()
-        score1, poputki1, score2, poputki2 = result[0][0], result[0][1], result[0][2], result[0][3]
-        self.con.commit()
-        self.con.close()
-        intro_text = ["Вы прошли все уровни", "", f"Вы набрали в сумме {score1 + score2} монет", "",
-                      f"Вы потрали в сумме {poputki1 + poputki2} попыток"]
+        intro_text = ["Вы прошли все уровни", "", f"Вы набрали в сумме {name[text][0] + name[text][2]} монет", "",
+                      f"Вы потрали в сумме {name[text][1] + name[text][3]} попыток"]
         coins = 0
         attempt = 0
         fon = pygame.transform.scale(self.load_image('win.jpg'), (self.width, self.height))
@@ -757,6 +744,17 @@ class App:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if 200 <= mouse[0] <= 550 and 440 <= mouse[1] <= 500:
                         pygame.mixer.music.pause()
+                        died = False
+                        self.hero = None
+                        self.angle = 0
+                        self.all_sprites = pygame.sprite.Group()
+                        self.elements = pygame.sprite.Group()
+                        for i in range(len(self.coins)):
+                            self.coins[i] = pygame.sprite.Group()
+                        for i in range(len(self.fire)):
+                            self.fire[i] = pygame.sprite.Group()
+                        self.Camera = 0
+                        self.run = True
                         app.start_screen()
                 elif event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                     pygame.mixer.music.pause()
@@ -778,4 +776,5 @@ class App:
 
 if __name__ == '__main__':
     app = App()
+    result()
     app.start_screen()
