@@ -14,12 +14,15 @@ level = 1
 attempt = 0
 text = ''
 levels = []
+player = ['player.jpg', 'player1.jpg', 'player2.jpg']
+vubor = 0
 
 
 class Hero(pygame.sprite.Sprite):
     def __init__(self, app, image, pos, platforms, *groups):
+        global player, vubor
         super().__init__(*groups)  # app.all_sprites
-        self.image = app.load_image("player.jpg")
+        self.image = app.load_image(player[vubor])
         self.rect = self.image.get_rect(center=pos)
         self.app = app
         self.jump_amount = 12
@@ -202,6 +205,7 @@ class App:
         pygame.mixer.music.load(fullname)
 
     def generate_level(self, level):
+        global player, vubor
         x = 0
         y = 0
         for i in range(len(level)):
@@ -220,7 +224,7 @@ class App:
                 x += 35
             y += 35
             x = 0
-        new_player = Hero(self, self.load_image('player.jpg'), (100, 100), self.elements, self.all_sprites)
+        new_player = Hero(self, self.load_image(player[vubor]), (100, 100), self.elements, self.all_sprites)
         return new_player
 
     def load_level(self, filename):
@@ -231,7 +235,7 @@ class App:
         return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
     def run_game(self, map, n=0):
-        global coins, attempt
+        global coins, attempt, player, vubor
         if n == 1:
             pygame.mixer.music.pause()
         self.load_music('music1.mp3')
@@ -241,7 +245,7 @@ class App:
         self.run = True
         attempt += 1
         coins = 0
-        icon = self.load_image("player.jpg")
+        icon = self.load_image(player[vubor])
         pygame.display.set_icon(icon)
         self.hero = self.generate_level(self.load_level(map))
         font = pygame.font.Font(None, 40)
@@ -296,7 +300,7 @@ class App:
             self.clock.tick(60)
 
     def start_screen(self):
-        global level, text, levels
+        global level, text, levels, vubor, player
         pygame.mixer.music.pause()
         intro_text = [" ГеометрияДэш", "",
                       "Выбери уровень"]
@@ -322,6 +326,15 @@ class App:
         text_coord = 350
         intro_rect.top = text_coord
         intro_rect.x = 70
+        text_coord += intro_rect.height
+        self.screen.blit(string_rendered, intro_rect)
+        self.base_font = pygame.font.Font(None, 35)
+        self.input_rect = pygame.Rect(400, 345, 180, 35)
+        string_rendered = font.render('Выберите героя:', 0, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord = 450
+        intro_rect.top = text_coord
+        intro_rect.x = 200
         text_coord += intro_rect.height
         self.screen.blit(string_rendered, intro_rect)
         self.base_font = pygame.font.Font(None, 35)
@@ -385,6 +398,14 @@ class App:
                     if self.click3:
                         if self.input_rect.collidepoint(event.pos):
                             self.active = True
+                    if 380 <= mouse[0] <= 405 and 450 <= mouse[1] <= 475:
+                        vubor -= 1
+                        if vubor < 0:
+                            vubor = len(player) - 1
+                    if 470 <= mouse[0] <= 495 and 450 <= mouse[1] <= 475:
+                        vubor += 1
+                        if vubor >= len(player):
+                            vubor = 0
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE and self.click3:
                         text = text[0:-1]
@@ -474,6 +495,9 @@ class App:
                 speed_x = - speed_x
             pos_rect = pos_rect - speed_x
             self.screen.blit(self.load_image('player_fon.jpg'), (pos_rect, 566))
+            self.screen.blit(self.load_image('perehod1.jpg'), (380, 450))
+            self.screen.blit(self.load_image(player[vubor]), (420, 445))
+            self.screen.blit(self.load_image('perehod.jpg'), (470, 450))
             string_rendered = font.render("Start", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 - 22, self.height / 2 - 7))
             string_rendered = font.render("1", 1, pygame.Color('white'))
