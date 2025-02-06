@@ -300,7 +300,7 @@ class App:
             self.clock.tick(60)
 
     def start_screen(self):
-        global level, text, levels, vubor, player
+        global level, text, levels, vubor, player, coins, attempt
         pygame.mixer.music.pause()
         intro_text = [" ГеометрияДэш", "",
                       "Выбери уровень"]
@@ -310,6 +310,8 @@ class App:
         self.click2 = False
         self.click3 = False
         self.start = False
+        coins = 0
+        attempt = 0
         font = pygame.font.Font(None, 30)
         text_coord = 50
         # player = Hero(self, self.load_image('player.jpg'), (0, 550), self.elements, self.all_sprites)
