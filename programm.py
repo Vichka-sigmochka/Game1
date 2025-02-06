@@ -270,7 +270,7 @@ class App:
                     pygame.time.delay(20)
             keys = pygame.key.get_pressed()
             if self.pause:
-                self.screen.blit(self.load_image('start.png'), (0, 0))
+                self.screen.blit(self.load_image('play.png'), (0, 0))
                 pygame.mixer.music.pause()
             else:
                 pygame.mixer.music.unpause()
@@ -295,7 +295,7 @@ class App:
                 for i in range(1, coins + 1):
                     self.screen.blit(self.load_image('coin.png'), (735 - i * 35, 50))
                 self.screen.blit(tries, (600, 20))
-                self.screen.blit(self.load_image('pause.jpg'), (0, 0))
+                self.screen.blit(self.load_image('pause.png'), (0, 0))
             pygame.display.flip()
             self.clock.tick(60)
 
@@ -497,9 +497,9 @@ class App:
                 speed_x = - speed_x
             pos_rect = pos_rect - speed_x
             self.screen.blit(self.load_image('player_fon.jpg'), (pos_rect, 566))
-            self.screen.blit(self.load_image('perehod1.jpg'), (380, 450))
+            self.screen.blit(self.load_image('perehod1.png'), (380, 450))
             self.screen.blit(self.load_image(player[vubor]), (420, 445))
-            self.screen.blit(self.load_image('perehod.jpg'), (470, 450))
+            self.screen.blit(self.load_image('perehod.png'), (470, 450))
             string_rendered = font.render("Start", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 - 22, self.height / 2 - 7))
             string_rendered = font.render("1", 1, pygame.Color('white'))
