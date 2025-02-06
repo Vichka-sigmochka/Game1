@@ -181,6 +181,7 @@ def died_or_won(w, d):
         else:
             app.win_screen2()
 
+
 def result():
     f = open('result.txt', 'r')
     s = f.readline().rstrip('\n')
@@ -524,13 +525,19 @@ class App:
                 name[text][0] = coins
                 name[text][1] = attempt
             elif name[text][0] == coins:
-                name[text][1] = min(name[text][1], attempt)
+                if name[text][1] != 0:
+                    name[text][1] = min(name[text][1], attempt)
+                else:
+                    name[text][1] = attempt
         else:
             if name[text][2] < coins:
                 name[text][2] = coins
                 name[text][3] = attempt
             elif name[text][2] == coins:
-                name[text][3] = min(name[text][3], attempt)
+                if name[text][3] != 0:
+                    name[text][3] = min(name[text][3], attempt)
+                else:
+                    name[text][3] = attempt
 
     def end_screen(self):
         global died
@@ -595,7 +602,7 @@ class App:
             self.clock.tick(self.fps)
 
     def win_screen1(self):
-        global coins, attempt, level, win, levels
+        global coins, attempt, level, win, levels, died
         self.update_dict()
         self.hero = None
         self.angle = 0
@@ -646,9 +653,31 @@ class App:
                     if 480 <= mouse[0] <= 730 and 440 <= mouse[1] <= 500:
                         if levels[0] == 1:
                             level = 2
+                            died = False
+                            self.hero = None
+                            self.angle = 0
+                            self.all_sprites = pygame.sprite.Group()
+                            self.elements = pygame.sprite.Group()
+                            for i in range(len(self.coins)):
+                                self.coins[i] = pygame.sprite.Group()
+                            for i in range(len(self.fire)):
+                                self.fire[i] = pygame.sprite.Group()
+                            self.Camera = 0
+                            self.run = True
                             app.run_game('map2.txt', 1)
                         else:
                             level = 1
+                            died = False
+                            self.hero = None
+                            self.angle = 0
+                            self.all_sprites = pygame.sprite.Group()
+                            self.elements = pygame.sprite.Group()
+                            for i in range(len(self.coins)):
+                                self.coins[i] = pygame.sprite.Group()
+                            for i in range(len(self.fire)):
+                                self.fire[i] = pygame.sprite.Group()
+                            self.Camera = 0
+                            self.run = True
                             app.run_game('map1.txt', 1)
                 if event.type == pygame.KEYUP and event.key == pygame.K_SPACE and click2:
                     if levels[0] == 1:
@@ -709,7 +738,7 @@ class App:
             self.clock.tick(self.fps)
 
     def win_screen2(self):
-        global coins, attempt, level, win
+        global coins, attempt, level, win, died
         self.update_dict()
         self.hero = None
         self.angle = 0
