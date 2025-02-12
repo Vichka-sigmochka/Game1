@@ -19,16 +19,28 @@ vubor = 0
 name = dict()
 
 
-class Hero(pygame.sprite.Sprite):
+class Hero(pygame.sprite.Sprite): # класс героя
+    """
+        Герой: реализует столкновение героя с платформами и проверку выиграл герой или нет
+
+        Атрибуты
+        --------
+        errors : list
+                список валютных пар, графики которых, к сожалению, нельзя построить(нет данных по используемой ссылке)
+
+        Методы
+        -------
+        collide() : столкновения героя с платформами и предметами
+        update() : вызов метода collide() и проверка: умер герой или нет
+    """
     def __init__(self, app, image, pos, platforms, *groups):
         global player, vubor
         super().__init__(*groups)  # app.all_sprites
-        self.image = app.load_image(player[vubor])
-        self.rect = self.image.get_rect(center=pos)
+        self.image = app.load_image(player[vubor])  # загрузка картинки героя
+        self.rect = self.image.get_rect(center=pos)  # размеры картинки героя
         self.app = app
-        self.jump_amount = 12
+        self.jump_amount = 12  # высота прыжка героя
         self.vel = Vector2(0, 0)  # скорость
-        self.rect = self.image.get_rect(center=pos)
         self.platforms = platforms  # все объекты(блоки, треугольники, монеты)
         self.is_jump = False  # прыгал или нет
         self.on_ground = False  # находится на земле или нет
@@ -37,7 +49,7 @@ class Hero(pygame.sprite.Sprite):
         global coins, died, win
         for p in platforms:
             if pygame.sprite.collide_rect(self, p):
-                if isinstance(p, Block):
+                if isinstance(p, Block):  # столкнулся с блоком
                     if yvel > 0:
                         self.rect.bottom = p.rect.top
                         self.vel.y = 0
@@ -49,38 +61,47 @@ class Hero(pygame.sprite.Sprite):
                         self.vel.x = 0
                         self.rect.right = p.rect.left
                         died = True
-                if isinstance(p, Triangle):
+                if isinstance(p, Triangle):  # столкнулся с треугольником
                     died = True
-                if isinstance(p, AnimatedSprite1):
+                if isinstance(p, AnimatedSprite1):  # столкнулся с огнём
                     died = True
-                if isinstance(p, AnimatedSprite):
+                if isinstance(p, AnimatedSprite):  # столкнулся с монетой
                     coins += 1
                     p.rect.x = -100
                     p.rect.y = -100
-                if isinstance(p, End):
+                if isinstance(p, End):  # дошёл до конца уровня
                     win = True
                 keys = pygame.key.get_pressed()
-                if isinstance(p, Gif) and (keys[pygame.K_UP] or keys[pygame.K_SPACE]):
+                if isinstance(p, Gif) and (keys[pygame.K_UP] or keys[pygame.K_SPACE]):  # столкнулся со сферой
                     app.screen.blit(app.load_image("sphere.gif"), p.rect.center)
                     self.vel.y = -(self.jump_amount + 2)
 
-    def update(self):
+    def update(self):  # проверка: умер герой или нет
         global win, died
-        if self.is_jump:
-            if self.on_ground:
+        if self.is_jump:  # если подпрыгнул
+            if self.on_ground:  # если на земле
                 self.vel.y = -self.jump_amount
-        if not self.on_ground:
-            self.vel = self.vel + GRAVITY
+        if not self.on_ground:  # если не на земле
+            self.vel = self.vel + GRAVITY  # изменяем скорость
             if self.vel.y > 100:
                 self.vel.y = 100
-        self.collide(0, self.platforms)
+        self.collide(0, self.platforms)  # проверка на столкновение
         self.rect.top = self.rect.top + self.vel.y
         self.on_ground = False
-        self.collide(self.vel.y, self.platforms)
-        died_or_won(win, died)
+        self.collide(self.vel.y, self.platforms)  # проверка на столкновение
+        died_or_won(win, died)  # умер герой или выиграл
 
 
 class Draw(pygame.sprite.Sprite):
+    """
+        Отрисовка: реализует отрисовку всех платформ и объектов
+
+        Атрибуты:
+        --------
+        img: картинка
+        rect: размеры картинки
+        groups: app.all_sprites
+    """
     def __init__(self, img, pos, *groups):
         super().__init__(*groups)
         self.image = img
@@ -88,26 +109,79 @@ class Draw(pygame.sprite.Sprite):
 
 
 class Block(Draw):
+    """
+        Блок: реализует отрисовку блока
+
+        Атрибуты:
+        --------
+        img: картинка
+        pos: координаты картинки
+        groups: app.all_sprites
+    """
     def __init__(self, img, pos, *groups):
         super().__init__(img, pos, *groups)
 
 
 class Triangle(Draw):
+    """
+        Треугольник: реализует отрисовку треугольника
+
+        Атрибуты:
+        --------
+        img: картинка
+        pos: координаты картинки
+        groups: app.all_sprites
+    """
     def __init__(self, img, pos, *groups):
         super().__init__(img, pos, *groups)
 
 
 class End(Draw):
+    """
+        Конец: реализует отрисовку конца игры
+
+        Атрибуты:
+        --------
+        img: картинка
+        pos: координаты картинки
+        groups: app.all_sprites
+    """
     def __init__(self, img, pos, *groups):
         super().__init__(img, pos, *groups)
 
 
 class Gif(Draw):
+    """
+        Сфера: реализует отрисовку сферы
+
+        Атрибуты:
+        --------
+        img: картинка
+        pos: координаты картинки
+        groups: app.all_sprites
+    """
     def __init__(self, img, pos, *groups):
         super().__init__(img, pos, *groups)
 
 
 class AnimatedSprite(pygame.sprite.Sprite):
+    """
+        AnimatedSprite: реализует анимацию монеты
+
+        Атрибуты:
+        --------
+        app: картинка
+        sheet: координаты картинки
+        columns: сколько картинок в строке
+        rows: сколько картинок в столбце
+        x: координата
+        y: координата
+
+        Методы:
+        --------
+        cut_sheet: режет картинка на маленькие картинки
+        update: смена кадров
+    """
     def __init__(self, app, sheet, columns, rows, x, y):
         super().__init__(app.elements)
         self.frames = []
