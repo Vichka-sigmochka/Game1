@@ -474,7 +474,7 @@ class App:
         self.input_rect = pygame.Rect(400, 345, 180, 35)
         string_rendered = font.render('Выберите героя:', 0, pygame.Color('white'))
         intro_rect = string_rendered.get_rect()
-        text_coord = 450
+        text_coord =  450
         intro_rect.top = text_coord
         intro_rect.x = 200
         text_coord += intro_rect.height
@@ -482,9 +482,9 @@ class App:
         self.base_font = pygame.font.Font(None, 35)
         self.input_rect = pygame.Rect(400, 345, 180, 35)
         self.color = pygame.Color((0, 255, 0))
-        self.active = False
-        pos_rect = 0
-        speed_x = 3
+        self.active = False # флаг, отвечающий за написание имени, когда было нажатие на поле ввода имени
+        pos_rect = 0 # координата х движущегося игрока
+        speed_x = 3 # скорость движущегося игрока
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -702,8 +702,8 @@ class App:
         self.Camera = 0
         self.run = True
         win = False
-        click1 = True
-        click2 = False
+        click1 = True # флаг, отвечающий за нажатие на кнопку "Вернуться на стартовую страницу"
+        click2 = False # флаг, отвечающий за нажатие на кнопку "Пройти уровень"
         pygame.mixer.music.pause()
         self.load_music('win.mp3')
         pygame.mixer.music.play()
