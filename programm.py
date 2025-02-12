@@ -259,12 +259,12 @@ def result(): # функция, которая берет данные из resu
     f = open('result.txt', 'r')
     s = f.readline().rstrip('\n')
     while s != '':
-        s = s.split(' ')
+        s = s.split(' ') # строка состоит из: имя, количество монет за уровень 1, количество попыток за уровень 1, количество монет за уровень 2, количество попыток за уровень 2
         name[s[0]] = [int(s[1]), int(s[2]), int(s[3]), int(s[4])]
         s = f.readline().rstrip('\n')
     f.close()
     with open('result.txt', 'r+') as f:
-        f.truncate(0)
+        f.truncate(0) # очищается файл
 
 
 class App:
@@ -612,11 +612,11 @@ class App:
     def update_dict(self):
         global level, attempt, text, coins
         if level == 1:
-            if name[text][0] < coins:
-                name[text][0] = coins
+            if name[text][0] < coins: # если за уровень уже были набраны монеты, но их меньше, чем набрано монет за последнюю попытку
+                name[text][0] = coins # записывается лучший результат
                 name[text][1] = attempt
-            elif name[text][0] == coins:
-                if name[text][1] != 0:
+            elif name[text][0] == coins: # если монет набрано столько же, как и до этого
+                if name[text][1] != 0: # смотрим на минимальное количество потраченых попыток
                     name[text][1] = min(name[text][1], attempt)
                 else:
                     name[text][1] = attempt
