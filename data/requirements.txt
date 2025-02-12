@@ -1,7 +1,0 @@
-os
-sys
-pygame
-pygame.draw
-rect
-pygame.math
-Vector2
