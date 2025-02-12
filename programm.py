@@ -26,9 +26,11 @@ class Hero(pygame.sprite.Sprite): # класс героя
         Атрибуты
         --------
         app : class
+            отвечает за реализацию игры
 
         image: картинка героя
-        pos: позиция героя
+        pos : int
+            позиция героя
         platforms: все объекты(блоки, треугольники, монеты, огонь, конец игры)
         groups: app.all_sprites
 
@@ -103,7 +105,8 @@ class Draw(pygame.sprite.Sprite):
         Атрибуты:
         --------
         img: картинка
-        rect: размеры картинки
+        rect : int
+            размеры картинки
         groups: app.all_sprites
     """
     def __init__(self, img, pos, *groups):
@@ -119,7 +122,8 @@ class Block(Draw):
         Атрибуты:
         --------
         img: картинка
-        pos: координаты картинки
+        pos : int
+            координаты картинки
         groups: app.all_sprites
     """
     def __init__(self, img, pos, *groups):
@@ -133,7 +137,8 @@ class Triangle(Draw):
         Атрибуты:
         --------
         img: картинка
-        pos: координаты картинки
+        pos : int
+            координаты картинки
         groups: app.all_sprites
     """
     def __init__(self, img, pos, *groups):
@@ -147,7 +152,8 @@ class End(Draw):
         Атрибуты:
         --------
         img: картинка
-        pos: координаты картинки
+        pos : int
+            координаты картинки
         groups: app.all_sprites
     """
     def __init__(self, img, pos, *groups):
@@ -161,7 +167,8 @@ class Gif(Draw):
         Атрибуты:
         --------
         img: картинка
-        pos: координаты картинки
+        pos : int
+            координаты картинки
         groups: app.all_sprites
     """
     def __init__(self, img, pos, *groups):
@@ -174,12 +181,17 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
         Атрибуты:
         --------
-        app:
+        app : class
+            отвечает за реализацию игры
         sheet: картинка для разрезания
-        columns: сколько картинок в строке
-        rows: сколько картинок в столбце
-        x: координата
-        y: координата
+        columns : int
+            сколько картинок в строке
+        rows : int
+            сколько картинок в столбце
+        x : int
+            координата
+        y : int
+            координата
 
         Методы:
         --------
@@ -214,12 +226,17 @@ class AnimatedSprite1(pygame.sprite.Sprite):
 
         Атрибуты:
         --------
-        app:
+        app : class
+            отвечает за реализацию игры
         sheet: картинка для разрезания
-        columns: сколько картинок в строке
-        rows: сколько картинок в столбце
-        x: координата
-        y: координата
+        columns : int
+            сколько картинок в строке
+        rows : int
+            сколько картинок в столбце
+        x : int
+            координата
+        y : int
+            координата
 
         Методы:
         --------
