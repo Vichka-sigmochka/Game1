@@ -2,7 +2,6 @@ import os
 import sys
 import pygame
 from pygame.draw import rect
-import sqlite3
 from pygame.math import Vector2
 
 jump_start_time = 0
@@ -15,7 +14,7 @@ attempt = 0
 text = ''
 levels = []
 player = ['player.jpg', 'player1.jpg', 'player2.jpg']
-vubor = 0
+choice = 0
 name = dict()
 
 
@@ -40,9 +39,9 @@ class Hero(pygame.sprite.Sprite): # класс героя
         update() : вызов метода collide() и проверка: умер герой или нет
     """
     def __init__(self, app, image, pos, platforms, *groups):
-        global player, vubor
+        global player, choice
         super().__init__(*groups)  # app.all_sprites
-        self.image = app.load_image(player[vubor])  # загрузка картинки героя
+        self.image = app.load_image(player[choice])  # загрузка картинки героя
         self.rect = self.image.get_rect(center=pos)  # размеры картинки героя
         self.app = app
         self.jump_amount = 12  # высота прыжка героя
@@ -265,7 +264,7 @@ class AnimatedSprite1(pygame.sprite.Sprite):
         self.image = self.frames[self.cur_frame]
 
 
-def Spin(surf, image, pos, item, angle):  # реализует поворот картинки при прыжке героя
+def spin(surf, image, pos, item, angle):  # реализует поворот картинки при прыжке героя
     width, height = image.get_size()  # размеры картинки
     box = [Vector2(0, 0), Vector2(width, 0), Vector2(width, -height), Vector2(0, -height)]
     box_spin = []
@@ -281,7 +280,7 @@ def Spin(surf, image, pos, item, angle):  # реализует поворот к
     surf.blit(spin_img, first)
 
 
-def died_or_won(w, d):  # проверка умер герой или выиграл
+def died_or_won(w, d): # функция, проверяющая, проиграл игрок или нет. Вызывает разные окно, в зависимости от исхода игры
     global level, levels
     if d:
         app.end_screen()
@@ -294,28 +293,46 @@ def died_or_won(w, d):  # проверка умер герой или выигр
             app.win_screen2()
 
 
-def result():
+def result(): # функция, которая берет данные из result.txt и очищает его
     f = open('result.txt', 'r')
     s = f.readline().rstrip('\n')
     while s != '':
-        s = s.split(' ')
+        s = s.split(' ') # строка состоит из: имя, количество монет за уровень 1, количество попыток за уровень 1, количество монет за уровень 2, количество попыток за уровень 2
         name[s[0]] = [int(s[1]), int(s[2]), int(s[3]), int(s[4])]
         s = f.readline().rstrip('\n')
     f.close()
     with open('result.txt', 'r+') as f:
-        f.truncate(0)
+        f.truncate(0) # очищается файл
 
 
 class App:
+    """
+        App: основной класс, отвечающий за реализацию игры
+
+        Методы
+        -------
+        terminate() : реализует окончание игры, записываются данные в текстовый файл result.txt
+        move_map() : перемещает карту
+        load_image() : загружает картинку
+        load_music() : загружает музыку
+        generate_level() : отрисовывает карту выбранного уровня
+        load_level() : загружает карту выбранного уровня
+        run_game() : запускает игру
+        start_screen() : стартовое окно, где можно ввести своё имя и выбрать уровень
+        update_dict() : обновляет данные, взятые из текстового файла result.txt
+        end_screen() : окно, вызывающееся при неудачном прохождении уровня
+        win_screen1() : окно, вызывающееся при удачном прохождении одного из уровня
+        win_screen2() : окно, вызывающееся при удачном прохождении двух уровней
+    """
     def __init__(self):
         pygame.init()
-        self.width = 800
-        self.height = 600
+        self.width = 800  # высота
+        self.height = 600  # ширина
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption('ГеометрияДэш')
-        self.hero = None
-        self.angle = 0
+        self.hero = None  # герой
+        self.angle = 0  # угол
         self.all_sprites = pygame.sprite.Group()
         self.elements = pygame.sprite.Group()
         self.fps = 50
@@ -323,8 +340,7 @@ class App:
         self.run = True
         self.coins = []
         self.fire = []
-        self.pause = False
-
+        self.pause = False  # пауза
 
     def terminate(self):
         f = open('result.txt', 'w')
@@ -361,7 +377,7 @@ class App:
         pygame.mixer.music.load(fullname)
 
     def generate_level(self, level):
-        global player, vubor
+        global player, choice
         x = 0
         y = 0
         for i in range(len(level)):
@@ -383,7 +399,7 @@ class App:
                 x += 35
             y += 35
             x = 0
-        new_player = Hero(self, self.load_image(player[vubor]), (100, 100), self.elements, self.all_sprites)
+        new_player = Hero(self, self.load_image(player[choice]), (100, 100), self.elements, self.all_sprites)
         return new_player
 
     def load_level(self, filename):
@@ -394,8 +410,8 @@ class App:
         return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
     def run_game(self, map, n=0):
-        global coins, attempt, player, vubor
-        if n == 1:
+        global coins, attempt, player, choice  # монеты, попытки, игрок, выбор
+        if n == 1:  # если функция вызывается не в первый раз
             pygame.mixer.music.pause()
         self.load_music('music1.mp3')
         pygame.mixer.music.play()
@@ -404,7 +420,7 @@ class App:
         self.run = True
         attempt += 1
         coins = 0
-        icon = self.load_image(player[vubor])
+        icon = self.load_image(player[choice])
         pygame.display.set_icon(icon)
         self.hero = self.generate_level(self.load_level(map))
         font = pygame.font.Font(None, 40)
@@ -443,7 +459,7 @@ class App:
                 self.screen.blit(fon, (0, 0))
                 if self.hero.is_jump:
                     self.angle -= 8.1712
-                    Spin(self.screen, self.hero.image, self.hero.rect.center, (16, 16), self.angle)
+                    spin(self.screen, self.hero.image, self.hero.rect.center, (16, 16), self.angle)
                 else:
                     self.all_sprites.draw(self.screen)
                 self.elements.draw(self.screen)
@@ -453,7 +469,7 @@ class App:
                 for group in self.fire:
                     group.update()
                     group.draw(self.screen)
-                tries = font.render(f" Attempt {str(attempt)}", True, (255, 255, 255))
+                tries = font.render(f" Attempt {str(attempt)}", True, (255, 255, 255))  # отображение попыток
                 for i in range(1, coins + 1):
                     self.screen.blit(self.load_image('coin.png'), (735 - i * 35, 50))
                 self.screen.blit(tries, (600, 20))
@@ -462,16 +478,16 @@ class App:
             self.clock.tick(60)
 
     def start_screen(self):
-        global level, text, levels, vubor, player, coins, attempt, name
+        global level, text, levels, choice, player, coins, attempt, name
         pygame.mixer.music.pause()
         intro_text = [" ГеометрияДэш", "",
                       "Выбери уровень"]
         fon = pygame.transform.scale(self.load_image('screen.jpg'), (self.width, self.height))
         self.screen.blit(fon, (0, 0))
-        self.click1 = True
-        self.click2 = False
-        self.click3 = False
-        self.start = False
+        self.click1 = True # флаг, отвечающий за нажатие на кнопку "1 level"
+        self.click2 = False # флаг, отвечающий за нажатие на кнопку "2 level"
+        self.click3 = False # флаг, отвечающий за нажатие на поле ввода имени
+        self.start = False # флаг, отвечающий за нажатие на кнопку "Start"
         coins = 0
         attempt = 0
         font = pygame.font.Font(None, 30)
@@ -504,9 +520,9 @@ class App:
         self.base_font = pygame.font.Font(None, 35)
         self.input_rect = pygame.Rect(400, 345, 180, 35)
         self.color = pygame.Color((0, 255, 0))
-        self.active = False
-        pos_rect = 0
-        speed_x = 3
+        self.active = False # флаг, отвечающий за написание имени, когда было нажатие на поле ввода имени
+        pos_rect = 0 # координата х движущегося игрока
+        speed_x = 3 # скорость движущегося игрока
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -538,13 +554,13 @@ class App:
                         if self.input_rect.collidepoint(event.pos):
                             self.active = True
                     if 380 <= mouse[0] <= 405 and 450 <= mouse[1] <= 475:
-                        vubor -= 1
-                        if vubor < 0:
-                            vubor = len(player) - 1
+                        choice -= 1
+                        if choice < 0:
+                            choice = len(player) - 1
                     if 470 <= mouse[0] <= 495 and 450 <= mouse[1] <= 475:
-                        vubor += 1
-                        if vubor >= len(player):
-                            vubor = 0
+                        choice += 1
+                        if choice >= len(player):
+                            choice = 0
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE and self.click3:
                         text = text[0:-1]
@@ -610,7 +626,7 @@ class App:
             pos_rect = pos_rect - speed_x
             self.screen.blit(self.load_image('player_fon.jpg'), (pos_rect, 566))
             self.screen.blit(self.load_image('perehod1.png'), (380, 450))
-            self.screen.blit(self.load_image(player[vubor]), (420, 445))
+            self.screen.blit(self.load_image(player[choice]), (420, 445))
             self.screen.blit(self.load_image('perehod.png'), (470, 450))
             string_rendered = font.render("Start", 1, pygame.Color('white'))
             self.screen.blit(string_rendered, (self.width / 2 - 22, self.height / 2 - 7))
@@ -634,11 +650,11 @@ class App:
     def update_dict(self):
         global level, attempt, text, coins
         if level == 1:
-            if name[text][0] < coins:
-                name[text][0] = coins
+            if name[text][0] < coins: # если за уровень уже были набраны монеты, но их меньше, чем набрано монет за последнюю попытку
+                name[text][0] = coins # записывается лучший результат
                 name[text][1] = attempt
-            elif name[text][0] == coins:
-                if name[text][1] != 0:
+            elif name[text][0] == coins: # если монет набрано столько же, как и до этого
+                if name[text][1] != 0: # смотрим на минимальное количество потраченых попыток
                     name[text][1] = min(name[text][1], attempt)
                 else:
                     name[text][1] = attempt
@@ -724,8 +740,8 @@ class App:
         self.Camera = 0
         self.run = True
         win = False
-        click1 = True
-        click2 = False
+        click1 = True # флаг, отвечающий за нажатие на кнопку "Вернуться на стартовую страницу"
+        click2 = False # флаг, отвечающий за нажатие на кнопку "Пройти уровень"
         pygame.mixer.music.pause()
         self.load_music('win.mp3')
         pygame.mixer.music.play()
