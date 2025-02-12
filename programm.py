@@ -25,8 +25,12 @@ class Hero(pygame.sprite.Sprite): # класс героя
 
         Атрибуты
         --------
-        errors : list
-                список валютных пар, графики которых, к сожалению, нельзя построить(нет данных по используемой ссылке)
+        app : class
+
+        image: картинка героя
+        pos: позиция героя
+        platforms: все объекты(блоки, треугольники, монеты, огонь, конец игры)
+        groups: app.all_sprites
 
         Методы
         -------
@@ -170,8 +174,8 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
         Атрибуты:
         --------
-        app: картинка
-        sheet: координаты картинки
+        app:
+        sheet: картинка для разрезания
         columns: сколько картинок в строке
         rows: сколько картинок в столбце
         x: координата
@@ -205,6 +209,23 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
 
 class AnimatedSprite1(pygame.sprite.Sprite):
+    """
+        AnimatedSprite: реализует анимацию монеты
+
+        Атрибуты:
+        --------
+        app:
+        sheet: картинка для разрезания
+        columns: сколько картинок в строке
+        rows: сколько картинок в столбце
+        x: координата
+        y: координата
+
+        Методы:
+        --------
+        cut_sheet: режет картинка на маленькие картинки
+        update: смена кадров
+    """
     def __init__(self, app, sheet, columns, rows, x, y):
         super().__init__(app.elements)
         self.frames = []
@@ -227,8 +248,8 @@ class AnimatedSprite1(pygame.sprite.Sprite):
         self.image = self.frames[self.cur_frame]
 
 
-def Spin(surf, image, pos, item, angle):
-    width, height = image.get_size()
+def Spin(surf, image, pos, item, angle):  # реализует поворот картинки при прыжке героя
+    width, height = image.get_size()  # размеры картинки
     box = [Vector2(0, 0), Vector2(width, 0), Vector2(width, -height), Vector2(0, -height)]
     box_spin = []
     for b in box:
@@ -243,7 +264,7 @@ def Spin(surf, image, pos, item, angle):
     surf.blit(spin_img, first)
 
 
-def died_or_won(w, d):
+def died_or_won(w, d):  # проверка умер герой или выиграл
     global level, levels
     if d:
         app.end_screen()
