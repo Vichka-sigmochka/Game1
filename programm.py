@@ -325,6 +325,7 @@ class App:
         self.fire = []
         self.pause = False
 
+
     def terminate(self):
         f = open('result.txt', 'w')
         for i in name:
